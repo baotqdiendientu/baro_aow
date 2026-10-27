@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { FULL_ALBION_DB } from '@/services/albion-db';
 import { getItemImageUrl } from '@/lib/albion-image';
 import { ItemTooltip } from '@/components/albion/ItemTooltip';
+import { ThemeToggle } from '@/components/albion/ThemeToggle';
 import { ArrowLeft } from 'lucide-react';
 
 interface ItemPageProps {
@@ -59,7 +60,7 @@ export default async function ItemDetailPage({ params }: ItemPageProps) {
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary p-4 sm:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <Link
             href="/items"
             className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-bg-secondary hover:bg-bg-elevated text-xs font-medium text-accent-primary border border-border-gold/50 transition-all"
@@ -67,9 +68,12 @@ export default async function ItemDetailPage({ params }: ItemPageProps) {
             <ArrowLeft className="w-4 h-4" />
             <span>Quay lại Kho Vật Phẩm (/items)</span>
           </Link>
-          <span className="text-xs font-mono text-text-muted">
-            Programmatic SEO Route: /item/{item.unique_name}
-          </span>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <span className="text-xs font-mono text-text-muted hidden sm:inline">
+              /item/{item.unique_name}
+            </span>
+          </div>
         </div>
 
         <ItemTooltip item={item} lang="vi" />

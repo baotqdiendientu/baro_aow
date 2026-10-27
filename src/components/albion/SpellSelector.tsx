@@ -69,8 +69,8 @@ export const SpellSelector: React.FC<SpellSelectorProps> = ({
         </span>
       </div>
 
-      {/* Horizontal Brass-Rimmed Spell Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* Horizontal Brass-Rimmed Spell Row (Scrollable with snap on mobile) */}
+      <div className="flex overflow-x-auto snap-x pb-2 gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible scrollbar-none">
         {availableGroups.map(({ key, label, badge }) => {
           const spells = item.spells[key] || [];
           const currentId = selectedSpells[key] || spells[0]?.id;
@@ -81,7 +81,7 @@ export const SpellSelector: React.FC<SpellSelectorProps> = ({
               key={key}
               onClick={() => setFocusedSlot(key)}
               className={[
-                'p-2.5 rounded-lg border transition-all cursor-pointer',
+                'snap-start min-w-[200px] sm:min-w-0 flex-1 p-2.5 rounded-lg border transition-all cursor-pointer',
                 isGroupFocused
                   ? 'bg-bg-secondary border-border-gold shadow-rpg-gold'
                   : 'bg-bg-primary/70 border-border-subtle hover:border-border-gold/40',
@@ -185,8 +185,26 @@ const BrassSpellOrb: React.FC<BrassSpellOrbProps> = ({
   itemTier,
   onSelect,
 }) => {
+  const [imgSrc, setImgSrc] = useState(() => getSpellRenderUrl(spell.spell_icon, 64));
+  const [triedCdn, setTriedCdn] = useState(false);
   const [failed, setFailed] = useState(false);
-  const url = getSpellRenderUrl(spell.spell_icon, 64);
+
+  React.useEffect(() => {
+    setImgSrc(getSpellRenderUrl(spell.spell_icon, 64));
+    setTriedCdn(false);
+    setFailed(false);
+  }, [spell.spell_icon]);
+
+  const handleImageError = () => {
+    if (!triedCdn) {
+      setTriedCdn(true);
+      // Fallback directly to official render API
+      setImgSrc(`https://render.albiononline.com/v1/spell/${encodeURIComponent(spell.spell_icon)}.png?size=64`);
+    } else {
+      setFailed(true);
+    }
+  };
+
   const isLocked = Boolean(spell.unlockTier && itemTier < spell.unlockTier);
 
   const title = isLocked
@@ -213,10 +231,10 @@ const BrassSpellOrb: React.FC<BrassSpellOrbProps> = ({
     >
       {!failed ? (
         <img
-          src={url}
+          src={imgSrc}
           alt={spell.name_en}
           loading="lazy"
-          onError={() => setFailed(true)}
+          onError={handleImageError}
           className="w-full h-full object-cover"
         />
       ) : (

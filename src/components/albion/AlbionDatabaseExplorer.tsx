@@ -24,6 +24,7 @@ import { AppLanguage } from '@/i18n/translations';
 import { ItemSlot } from './ItemSlot';
 import { ItemTooltip } from './ItemTooltip';
 import { ItemConfigPopover } from './ItemConfigPopover';
+import { MobileBottomSheet } from './MobileBottomSheet';
 import { DestinyBoardNavigator } from './DestinyBoardNavigator';
 import {
   ChevronLeft,
@@ -90,6 +91,7 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
   const [previewQuality, setPreviewQuality] = useState<AlbionQuality>(3);
   const [groupByBase, setGroupByBase] = useState(true);
   const [popoverItem, setPopoverItem] = useState<HydratedAlbionItem | null>(null);
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
 
   // Instant Multi-Filter States
   const [searchInput, setSearchInput] = useState('');
@@ -475,7 +477,9 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
                     onClick={() => {
                       setSelectedItem(item);
                       setPreviewTier(item.tier);
-                      setPopoverItem(item);
+                      if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+                        setMobileDetailOpen(true);
+                      }
                     }}
                     className={[
                       'group p-2.5 rounded-xl border transition-all cursor-pointer flex items-center gap-3',
@@ -695,6 +699,38 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
         lang={lang}
         mode="inspect"
       />
+
+      {/* Mobile Bottom Sheet for Item Details on Screen < 1280px */}
+      <MobileBottomSheet
+        isOpen={mobileDetailOpen}
+        onClose={() => setMobileDetailOpen(false)}
+        title={lang === 'vi' ? selectedItem.name_vi : selectedItem.name_en}
+      >
+        <div className="space-y-4">
+          <ItemTooltip
+            item={selectedItem}
+            tier={previewTier}
+            enchantment={previewEnchant}
+            quality={previewQuality}
+            lang={lang}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setMobileDetailOpen(false);
+              setPopoverItem(selectedItem);
+            }}
+            className="w-full py-2.5 rounded-lg bg-accent-primary text-bg-primary font-bold text-xs flex items-center justify-center gap-1.5 shadow-rpg-gold"
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>
+              {lang === 'vi'
+                ? 'Tùy Chỉnh Tier / Phù Phép / Phẩm Chất'
+                : 'Configure Tier / Enchant / Quality'}
+            </span>
+          </button>
+        </div>
+      </MobileBottomSheet>
     </div>
   );
 };

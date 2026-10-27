@@ -35,11 +35,11 @@ export interface ItemSlotProps {
 }
 
 const SIZE_CLASSES: Record<NonNullable<ItemSlotProps['size']>, string> = {
-  // Spec: 64x64px (Desktop) and 48x48px (Mobile)
-  responsive: 'w-12 h-12 sm:w-16 sm:h-16',
-  sm: 'w-12 h-12',
-  md: 'w-16 h-16',
-  lg: 'w-20 h-20',
+  // Mobile 40x40px to 48x48px (w-10 h-10 to sm:w-12 sm:h-12) / Desktop 64x64px (md:w-16 md:h-16)
+  responsive: 'w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16',
+  sm: 'w-10 h-10 sm:w-12 sm:h-12',
+  md: 'w-12 h-12 sm:w-16 sm:h-16',
+  lg: 'w-16 h-16 sm:w-20 sm:h-20',
 };
 
 const ENCHANT_GLOW_SHADOW: Record<AlbionEnchantment, string> = {

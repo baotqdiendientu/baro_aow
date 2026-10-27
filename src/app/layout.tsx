@@ -5,6 +5,7 @@ import {
   JetBrains_Mono,
 } from 'next/font/google';
 import './globals.css';
+import { ThemeProvider } from '@/context/ThemeContext';
 
 const fontDisplay = Be_Vietnam_Pro({
   subsets: ['latin', 'vietnamese'],
@@ -48,6 +49,7 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
+      suppressHydrationWarning
       className={`${fontDisplay.variable} ${fontSans.variable} ${fontJakarta.variable} ${fontMono.variable} dark`}
     >
       <head>
@@ -57,9 +59,14 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link rel="dns-prefetch" href="https://render.albiononline.com" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('albion-theme');if(t==='light'){document.documentElement.classList.remove('dark')}else{document.documentElement.classList.add('dark')}}catch(e){}})()`,
+          }}
+        />
       </head>
-      <body className="font-sans bg-bg-primary text-text-primary antialiased selection:bg-accent-primary/30 selection:text-accent-primary">
-        {children}
+      <body className="font-sans bg-bg-primary text-text-primary antialiased selection:bg-accent-primary/30 selection:text-accent-primary min-h-screen">
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

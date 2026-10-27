@@ -279,3 +279,4 @@ export const DestinyBoardNavigator: React.FC<DestinyBoardNavigatorProps> = ({
     </div>
   );
 };
+

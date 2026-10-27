@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { SAMPLE_ALBION_ITEMS } from '@/data/sample-items';
 import { getItemRenderUrl } from '@/services/ao-api';
 import { LoadoutBuilder } from '@/components/albion/LoadoutBuilder';
+import { ThemeToggle } from '@/components/albion/ThemeToggle';
 import { ArrowLeft } from 'lucide-react';
 
 interface BuildPageProps {
@@ -60,7 +61,7 @@ export default async function BuildDetailPage({ params }: BuildPageProps) {
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary p-4 sm:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <Link
             href="/"
             className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-bg-secondary hover:bg-bg-elevated text-xs font-medium text-accent-primary border border-border-gold/50 transition-all"
@@ -68,9 +69,12 @@ export default async function BuildDetailPage({ params }: BuildPageProps) {
             <ArrowLeft className="w-4 h-4" />
             <span>Quay lại Albion Codex Dashboard</span>
           </Link>
-          <span className="text-xs font-mono text-text-muted">
-            Programmatic SEO Route: /build/{slug}
-          </span>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <span className="text-xs font-mono text-text-muted hidden sm:inline">
+              /build/{slug}
+            </span>
+          </div>
         </div>
 
         <LoadoutBuilder lang="vi" />

@@ -640,13 +640,25 @@ const SpellCircleButton: React.FC<SpellCircleButtonProps> = ({
   onSelect,
   size = 'md',
 }) => {
+  const [imgSrc, setImgSrc] = useState(() => getSpellRenderUrl(spell.spell_icon, 64));
+  const [triedCdn, setTriedCdn] = useState(false);
   const [imgFailed, setImgFailed] = useState(false);
 
   useEffect(() => {
+    setImgSrc(getSpellRenderUrl(spell.spell_icon, 64));
+    setTriedCdn(false);
     setImgFailed(false);
   }, [spell.spell_icon]);
 
-  const spellUrl = getSpellRenderUrl(spell.spell_icon, 64);
+  const handleImageError = () => {
+    if (!triedCdn) {
+      setTriedCdn(true);
+      setImgSrc(`https://render.albiononline.com/v1/spell/${encodeURIComponent(spell.spell_icon)}.png?size=64`);
+    } else {
+      setImgFailed(true);
+    }
+  };
+
   const label = lang === 'vi' ? spell.name_vi : spell.name_en;
   const isLocked = Boolean(spell.unlockTier && itemTier < spell.unlockTier);
 
@@ -675,10 +687,10 @@ const SpellCircleButton: React.FC<SpellCircleButtonProps> = ({
     >
       {!imgFailed ? (
         <img
-          src={spellUrl}
+          src={imgSrc}
           alt={spell.name_en}
           loading="lazy"
-          onError={() => setImgFailed(true)}
+          onError={handleImageError}
           className="w-full h-full object-cover"
         />
       ) : (

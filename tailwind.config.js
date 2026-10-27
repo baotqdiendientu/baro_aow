@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -8,17 +9,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // A. Base UI Colors (Dark Tactical RPG Dashboard)
-        'bg-primary': '#0B0E14',
-        'bg-secondary': '#131822',
-        'bg-elevated': '#1C2433',
-        'border-subtle': '#263042',
-        'border-gold': '#C59B27',
-        'text-primary': '#F8FAFC',
-        'text-secondary': '#CBD5E1',
-        'text-muted': '#94A3B8',
-        'accent-primary': '#E5A93C',
-        'accent-crimson': '#C83E31',
+        // A. Dynamic Theme UI Colors (Light Parchment / Dark Tactical RPG)
+        'bg-primary': 'var(--bg-primary)',
+        'bg-secondary': 'var(--bg-secondary)',
+        'bg-elevated': 'var(--bg-elevated)',
+        'bg-surface': 'var(--bg-surface)',
+        'border-subtle': 'var(--border-subtle)',
+        'border-gold': 'var(--border-gold)',
+        'text-primary': 'var(--text-primary)',
+        'text-secondary': 'var(--text-secondary)',
+        'text-muted': 'var(--text-muted)',
+        'accent-primary': 'var(--accent-primary)',
+        'accent-crimson': 'var(--accent-crimson)',
 
         // B. Albion Item Tier Colors (T1 - T8)
         'tier-1': '#6D6D6D',

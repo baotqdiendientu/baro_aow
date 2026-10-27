@@ -16,6 +16,8 @@ import {
 import { normalizeSearchText } from '@/services/albion-db';
 import { AppLanguage, UI_TRANSLATIONS } from '@/i18n/translations';
 import { ItemSlot } from '@/components/albion/ItemSlot';
+import { ThemeToggle } from '@/components/albion/ThemeToggle';
+import { MobileBottomNav } from '@/components/albion/MobileBottomNav';
 import {
   BookOpen,
   ChevronLeft,
@@ -340,8 +342,11 @@ export const AppShell: React.FC<AppShellProps> = ({
           )}
         </div>
 
-        {/* RIGHT: Bilingual Switcher (VI / EN) + Second-Screen Compact Mode Toggle */}
+        {/* RIGHT: Bilingual Switcher (VI / EN) + Theme Toggle + Compact Mode Toggle */}
         <div className="flex items-center gap-2 shrink-0">
+          {/* Light / Dark Mode Medieval RPG Theme Toggle */}
+          <ThemeToggle />
+
           {/* VI / EN Segmented Switcher */}
           <div
             className="flex items-center bg-bg-primary p-0.5 rounded-lg border border-border-gold/50 shadow-rpg-gold"
@@ -400,10 +405,10 @@ export const AppShell: React.FC<AppShellProps> = ({
 
       {/* BODY: Collapsible Left Sidebar + Main Viewport */}
       <div className="flex-1 flex overflow-hidden">
-        {/* COLLAPSIBLE LEFT SIDEBAR */}
+        {/* COLLAPSIBLE LEFT SIDEBAR (Hidden on mobile < 768px in favor of BottomNav) */}
         <aside
           className={[
-            'bg-bg-secondary border-r border-border-subtle flex flex-col justify-between transition-all duration-200 shrink-0 select-none',
+            'bg-bg-secondary border-r border-border-subtle hidden md:flex flex-col justify-between transition-all duration-200 shrink-0 select-none',
             sidebarCollapsed ? 'w-16' : 'w-64',
           ].join(' ')}
         >
@@ -568,7 +573,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         </aside>
 
         {/* MAIN VIEWPORT */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
           <div
             className={[
               'mx-auto transition-all duration-300',
@@ -581,6 +586,28 @@ export const AppShell: React.FC<AppShellProps> = ({
           </div>
         </main>
       </div>
+
+      {/* Sticky Mobile Bottom Navigation (< 768px) */}
+      <MobileBottomNav
+        activeTab={
+          activeSection === 'loadout'
+            ? 'build'
+            : activeSection === 'market'
+              ? 'market'
+              : 'items'
+        }
+        onSelectTab={(tab) => {
+          if (tab === 'build') setActiveSection('loadout');
+          else if (tab === 'market') setActiveSection('market');
+          else if (tab === 'items') setActiveSection('demo');
+          else if (tab === 'search') {
+            setActiveSection('demo');
+            setSearchOpen(true);
+            setTimeout(() => searchInputRef.current?.focus(), 50);
+          }
+        }}
+        lang={lang}
+      />
     </div>
   );
 };

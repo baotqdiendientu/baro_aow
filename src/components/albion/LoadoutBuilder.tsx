@@ -25,12 +25,14 @@ import { ItemSlot } from './ItemSlot';
 import { SpellSelector } from './SpellSelector';
 import { ItemTooltip } from './ItemTooltip';
 import { ItemConfigPopover } from './ItemConfigPopover';
+import { MobileBottomSheet } from './MobileBottomSheet';
 import {
   Check,
   ChevronLeft,
   ChevronRight,
   Coins,
   Copy,
+  Eye,
   Lock,
   Search,
   Share2,
@@ -216,6 +218,8 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [importJsonText, setImportJsonText] = useState('');
   const [popoverItem, setPopoverItem] = useState<AlbionItem | null>(null);
+
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
   // Paginated Slot Equipment Picker states
   const [pickerSearch, setPickerSearch] = useState('');
@@ -428,6 +432,15 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
     const isFocused = focusedSlot === slotKey;
     const labelInfo = SLOT_LABELS[slotKey];
 
+    const handleClick = () => {
+      setFocusedSlot(slotKey);
+      if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+        if (state && item) {
+          setMobileSheetOpen(true);
+        }
+      }
+    };
+
     if (isOffHandLocked && mainHandItem && mainHandState) {
       return (
         <div
@@ -437,11 +450,11 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
               ? `Ô Tay Phụ bị khóa do ${mainHandItem.name_vi} là vũ khí 2 Tay (2H)`
               : `Off-Hand slot is locked because ${mainHandItem.name_en} is a 2-Handed (2H) weapon`
           }
-          className="relative p-2.5 rounded-xl bg-bg-primary/60 border border-dashed border-accent-crimson/50 flex flex-col items-center justify-center gap-1.5 select-none"
+          className="relative p-1.5 sm:p-2.5 rounded-xl bg-bg-primary/60 border border-dashed border-accent-crimson/50 flex flex-col items-center justify-center gap-1 sm:gap-1.5 select-none"
         >
-          <span className="text-[10px] font-mono uppercase text-red-400 flex items-center gap-1">
-            <Lock className="w-3 h-3" />
-            {lang === 'vi' ? 'Khóa (2H)' : 'Locked (2H)'}
+          <span className="text-[9px] sm:text-[10px] font-mono uppercase text-red-400 flex items-center gap-0.5 sm:gap-1">
+            <Lock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+            {lang === 'vi' ? 'Khóa (2H)' : 'Locked'}
           </span>
           <ItemSlot
             baseIdentifier={mainHandItem.base_identifier}
@@ -452,7 +465,7 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
             quality={mainHandState.quality}
             disabled
           />
-          <span className="text-[10px] text-text-muted truncate max-w-[96px] text-center">
+          <span className="text-[9px] sm:text-[10px] text-text-muted truncate max-w-[80px] sm:max-w-[96px] text-center">
             {lang === 'vi' ? 'Chiếm 2 tay' : '2H Occupied'}
           </span>
         </div>
@@ -462,15 +475,15 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
     return (
       <div
         key={slotKey}
-        onClick={() => setFocusedSlot(slotKey)}
+        onClick={handleClick}
         className={[
-          'p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5',
+          'p-1.5 sm:p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-center gap-1 sm:gap-1.5 relative group',
           isFocused
             ? 'bg-bg-elevated border-border-gold shadow-rpg-gold'
             : 'bg-bg-primary/80 border-border-subtle hover:border-border-gold/50',
         ].join(' ')}
       >
-        <span className="text-[10px] font-mono uppercase text-text-secondary">
+        <span className="text-[9px] sm:text-[10px] font-mono uppercase text-text-secondary">
           {labelInfo.short}
         </span>
 
@@ -487,12 +500,12 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
               selected={isFocused}
               showHandednessBadge={slotKey === 'MainHand'}
             />
-            <span className="text-[11px] font-medium text-text-primary truncate max-w-[105px] text-center">
+            <span className="text-[10px] sm:text-[11px] font-medium text-text-primary truncate max-w-[80px] sm:max-w-[105px] text-center">
               {lang === 'vi' ? item.name_vi : item.name_en}
             </span>
           </>
         ) : (
-          <div className="w-14 h-14 rounded-md border border-dashed border-border-subtle flex items-center justify-center text-xs text-text-muted">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-md border border-dashed border-border-subtle flex items-center justify-center text-xs text-text-muted">
             +
           </div>
         )}
@@ -501,7 +514,7 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20 md:pb-6">
       {/* HEADER + PRESET BAR */}
       <div className="p-5 rounded-xl bg-bg-secondary border border-border-subtle space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -678,31 +691,31 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
             </div>
           </div>
 
-          {/* 10-SLOT PAPERDOLL GRID */}
-          <div className="space-y-3">
+          {/* 10-SLOT PAPERDOLL GRID (3 Centered Columns on Mobile) */}
+          <div className="space-y-2.5 sm:space-y-3 max-w-[300px] sm:max-w-none mx-auto">
             {/* Row 1: Bag - Head - Cape */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {renderPaperdollCell('Bag')}
               {renderPaperdollCell('Head')}
               {renderPaperdollCell('Cape')}
             </div>
 
             {/* Row 2: MainHand - Armor - OffHand */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {renderPaperdollCell('MainHand')}
               {renderPaperdollCell('Armor')}
               {renderPaperdollCell('OffHand')}
             </div>
 
             {/* Row 3: Potion - Shoes - Food */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {renderPaperdollCell('Potion')}
               {renderPaperdollCell('Shoes')}
               {renderPaperdollCell('Food')}
             </div>
 
             {/* Row 4: Centered Mount Slot */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               <div />
               {renderPaperdollCell('Mount')}
               <div />
@@ -1000,6 +1013,60 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
         lang={lang}
         mode="equip"
       />
+
+      {/* Mobile Bottom Sheet for Equiped Item Details on Mobile (< 768px) */}
+      <MobileBottomSheet
+        isOpen={mobileSheetOpen}
+        onClose={() => setMobileSheetOpen(false)}
+        title={
+          focusedItem
+            ? lang === 'vi'
+              ? `${SLOT_LABELS[focusedSlot].vi}: ${focusedItem.name_vi}`
+              : `${SLOT_LABELS[focusedSlot].en}: ${focusedItem.name_en}`
+            : undefined
+        }
+      >
+        {focusedItem && focusedSlotState && (
+          <div className="space-y-4">
+            <ItemTooltip
+              item={focusedItem}
+              tier={focusedSlotState.tier}
+              enchantment={focusedSlotState.enchantment}
+              quality={focusedSlotState.quality}
+              compact
+              lang={lang}
+            />
+            <SpellSelector
+              item={focusedItem}
+              selectedSpells={focusedSlotState.spells}
+              onChangeSpell={(slotKey, spellId) => {
+                handleUpdateSlotMeta(focusedSlot, {
+                  spells: {
+                    ...focusedSlotState.spells,
+                    [slotKey]: spellId,
+                  },
+                });
+              }}
+              lang={lang}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setMobileSheetOpen(false);
+                setPopoverItem(focusedItem);
+              }}
+              className="w-full py-2.5 rounded-lg bg-accent-primary text-bg-primary font-bold text-xs flex items-center justify-center gap-1.5 shadow-rpg-gold"
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              <span>
+                {lang === 'vi'
+                  ? 'Tùy Chỉnh Tier / Enchant / Quality'
+                  : 'Configure Tier / Enchant / Quality'}
+              </span>
+            </button>
+          </div>
+        )}
+      </MobileBottomSheet>
     </div>
   );
 };

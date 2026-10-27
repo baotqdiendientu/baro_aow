@@ -3,18 +3,52 @@
 @tailwind utilities;
 
 :root {
+  /* Light Mode: Medieval Parchment Paper & Crisp Dark Typography */
+  --bg-primary: #F3F4F6;
+  --bg-secondary: #FFFFFF;
+  --bg-elevated: #F9FAFB;
+  --bg-surface: #FFFFFF;
+  --border-subtle: #E5E7EB;
+  --border-gold: #B48316;
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #6B7280;
+  --accent-primary: #B48316;
+  --accent-crimson: #C83E31;
+  color-scheme: light;
+}
+
+.dark {
+  /* Dark Tactical RPG Dashboard */
+  --bg-primary: #0B0E14;
+  --bg-secondary: #131822;
+  --bg-elevated: #1C2433;
+  --bg-surface: #131822;
+  --border-subtle: #263042;
+  --border-gold: #C59B27;
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --accent-primary: #E5A93C;
+  --accent-crimson: #C83E31;
   color-scheme: dark;
 }
 
 body {
-  background-color: #0B0E14;
-  color: #F8FAFC;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   line-height: 1.6;
   letter-spacing: -0.005em;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Safe area padding for mobile bottom nav on iOS devices */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
 }
 
 /* Ensure headings using font-display remain clean and readable with Vietnamese diacritics */
@@ -30,15 +64,15 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0B0E14;
+  background: var(--bg-primary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #263042;
+  background: var(--border-subtle);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #C59B27;
+  background: var(--border-gold);
 }
 
