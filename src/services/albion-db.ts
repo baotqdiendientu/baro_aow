@@ -167,7 +167,89 @@ export function hydrateAlbionItem(raw: RawSyncedAlbionItem): AlbionItem & {
 
 export type HydratedAlbionItem = ReturnType<typeof hydrateAlbionItem>;
 
-// Singleton hydrated database (1,702 base items)
-export const FULL_ALBION_DB: HydratedAlbionItem[] = (
-  rawDb as RawSyncedAlbionItem[]
-).map(hydrateAlbionItem);
+const RAW_ITEMS = rawDb as RawSyncedAlbionItem[];
+
+// Map of baseIdentifier -> Array of available tiers sorted ascending
+const TIERS_BY_BASE = new Map<string, AlbionTier[]>();
+// Map of `${baseIdentifier}_T${tier}` -> RawSyncedAlbionItem
+const RAW_BY_BASE_TIER = new Map<string, RawSyncedAlbionItem>();
+
+for (const raw of RAW_ITEMS) {
+  const t = (Math.max(1, Math.min(8, raw.tier)) as AlbionTier) || 4;
+  const list = TIERS_BY_BASE.get(raw.base_identifier) || [];
+  if (!list.includes(t)) {
+    list.push(t);
+    list.sort((a, b) => a - b);
+    TIERS_BY_BASE.set(raw.base_identifier, list);
+  }
+  RAW_BY_BASE_TIER.set(`${raw.base_identifier}_T${t}`, raw);
+}
+
+export function getAvailableTiersForBase(baseIdentifier: string): AlbionTier[] {
+  const tiers = TIERS_BY_BASE.get(baseIdentifier);
+  if (tiers && tiers.length > 0) return tiers;
+  return [4, 5, 6, 7, 8];
+}
+
+/**
+ * Deduplicated list of distinct Base Items (~433 items total)
+ * Grouped by base_identifier with Tier 4 (or lowest available tier) as default representative.
+ */
+export const BASE_ALBION_ITEMS: HydratedAlbionItem[] = (() => {
+  const representativeMap = new Map<string, RawSyncedAlbionItem>();
+  for (const raw of RAW_ITEMS) {
+    const existing = representativeMap.get(raw.base_identifier);
+    if (!existing) {
+      representativeMap.set(raw.base_identifier, raw);
+    } else if (existing.tier !== 4) {
+      if (raw.tier === 4) {
+        representativeMap.set(raw.base_identifier, raw);
+      } else if (existing.tier < 4 && raw.tier > existing.tier && raw.tier <= 4) {
+        representativeMap.set(raw.base_identifier, raw);
+      }
+    }
+  }
+  return Array.from(representativeMap.values()).map(hydrateAlbionItem);
+})();
+
+/**
+ * Retrieves a hydrated AlbionItem configured for a specific tier, enchantment, and quality.
+ */
+export function getHydratedVariant(
+  baseIdentifier: string,
+  tier: AlbionTier,
+  enchantment: AlbionEnchantment = 0,
+  quality: AlbionQuality = 1
+): HydratedAlbionItem {
+  const key = `${baseIdentifier}_T${tier}`;
+  let raw = RAW_BY_BASE_TIER.get(key);
+  if (!raw) {
+    const tiers = getAvailableTiersForBase(baseIdentifier);
+    const closestTier = tiers[0] || 4;
+    raw = RAW_BY_BASE_TIER.get(`${baseIdentifier}_T${closestTier}`);
+  }
+
+  if (!raw) {
+    const base = BASE_ALBION_ITEMS.find((b) => b.base_identifier === baseIdentifier);
+    if (base) {
+      return {
+        ...base,
+        tier,
+        enchantment,
+        quality,
+      };
+    }
+    raw = RAW_ITEMS[0];
+  }
+
+  const hydrated = hydrateAlbionItem(raw);
+  return {
+    ...hydrated,
+    tier,
+    enchantment,
+    quality,
+  };
+}
+
+// Singleton hydrated database (1,702 items)
+export const FULL_ALBION_DB: HydratedAlbionItem[] = RAW_ITEMS.map(hydrateAlbionItem);

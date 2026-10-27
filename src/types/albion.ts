@@ -45,6 +45,14 @@ export interface AlbionSpell {
   description_vi: string;
   description_en: string;
   damage_type?: 'Physical' | 'Magical' | 'True' | 'Heal' | 'Buff';
+  unlockTier?: number; // e.g. 6 for Tier VI+ gated W spells
+}
+
+export interface WeaponLineSpellPool {
+  lineId: string; // e.g. 'axe', 'crossbow', 'nature_staff', 'sword', etc.
+  sharedQSpells: AlbionSpell[];
+  sharedWSpells: AlbionSpell[];
+  sharedPassives: AlbionSpell[];
 }
 
 export interface AlbionItemStats {

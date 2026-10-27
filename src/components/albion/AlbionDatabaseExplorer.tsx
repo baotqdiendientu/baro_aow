@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  BASE_ALBION_ITEMS,
   FULL_ALBION_DB,
   HydratedAlbionItem,
   normalizeSearchText,
@@ -22,11 +23,13 @@ import {
 import { AppLanguage } from '@/i18n/translations';
 import { ItemSlot } from './ItemSlot';
 import { ItemTooltip } from './ItemTooltip';
+import { ItemConfigPopover } from './ItemConfigPopover';
 import {
   ChevronLeft,
   ChevronRight,
   Database,
   Filter,
+  Layers,
   RotateCcw,
   Search,
   Sliders,
@@ -77,8 +80,15 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
 
   const [selectedItem, setSelectedItem] =
     useState<HydratedAlbionItem>(defaultItem);
-  const [previewEnchant, setPreviewEnchant] = useState<AlbionEnchantment>(0);
+  const [previewTier, setPreviewTier] = useState<AlbionTier>(
+    externalTier || defaultItem.tier
+  );
+  const [previewEnchant, setPreviewEnchant] = useState<AlbionEnchantment>(
+    externalEnchant !== undefined ? externalEnchant : 0
+  );
   const [previewQuality, setPreviewQuality] = useState<AlbionQuality>(3);
+  const [groupByBase, setGroupByBase] = useState(true);
+  const [popoverItem, setPopoverItem] = useState<HydratedAlbionItem | null>(null);
 
   // Instant Multi-Filter States
   const [searchInput, setSearchInput] = useState('');
@@ -91,6 +101,7 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
   useEffect(() => {
     if (externalSelectedItem) {
       setSelectedItem(externalSelectedItem);
+      setPreviewTier(externalTier || externalSelectedItem.tier);
       if (externalEnchant !== undefined) {
         setPreviewEnchant(externalEnchant);
       }
@@ -100,22 +111,23 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
   // Reset pagination to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchInput, slotFilter, tierFilter, handFilter]);
+  }, [searchInput, slotFilter, tierFilter, handFilter, groupByBase]);
 
-  // Instant Multi-Filter + Diacritic-insensitive search (<5ms over 1,702 base items)
+  // Instant Multi-Filter + Diacritic-insensitive search
   const filteredItems = useMemo(() => {
     const qNorm = normalizeSearchText(searchInput);
+    const source = groupByBase ? BASE_ALBION_ITEMS : FULL_ALBION_DB;
 
-    return FULL_ALBION_DB.filter((item) => {
+    return source.filter((item) => {
       if (slotFilter !== 'ALL' && item.slot_type !== slotFilter) return false;
-      if (tierFilter !== 'ALL' && item.tier !== tierFilter) return false;
+      if (!groupByBase && tierFilter !== 'ALL' && item.tier !== tierFilter) return false;
       if (handFilter !== 'ALL' && item.handedness !== handFilter) return false;
 
       if (qNorm) {
         // Support multi-word accent-free matching (e.g. "luoi hai", "cung t6", "cu owl")
         const tokens = qNorm.split(/\s+/).filter(Boolean);
         for (const tk of tokens) {
-          if (/^t[1-8]$/.test(tk)) {
+          if (!groupByBase && /^t[1-8]$/.test(tk)) {
             const tNum = Number(tk.slice(1));
             if (item.tier !== tNum) return false;
             continue;
@@ -126,7 +138,7 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
 
       return true;
     });
-  }, [searchInput, slotFilter, tierFilter, handFilter]);
+  }, [searchInput, slotFilter, tierFilter, handFilter, groupByBase]);
 
   const totalPages = Math.max(
     1,
@@ -332,38 +344,64 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
           })}
         </div>
 
-        {/* Row 3: Tier Filter Pills (T1 - T8) */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[11px] font-mono text-text-muted mr-1">
-            Tier (T1–T8):
-          </span>
-          <button
-            type="button"
-            onClick={() => setTierFilter('ALL')}
-            className={[
-              'px-2.5 py-1 rounded-lg text-xs font-mono font-bold border transition-all',
-              tierFilter === 'ALL'
-                ? 'bg-accent-primary text-bg-primary border-border-gold'
-                : 'bg-bg-primary border-border-subtle text-text-secondary hover:text-text-primary',
-            ].join(' ')}
-          >
-            ALL
-          </button>
-          {([1, 2, 3, 4, 5, 6, 7, 8] as AlbionTier[]).map((tNum) => (
+        {/* Row 3: Group by Base toggle & Tier Filter Pills */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-border-subtle/50">
+          <div className="flex flex-wrap items-center gap-1.5">
             <button
-              key={tNum}
               type="button"
-              onClick={() => setTierFilter(tNum)}
+              onClick={() => setGroupByBase((prev) => !prev)}
               className={[
-                'px-2.5 py-1 rounded-lg text-xs font-mono font-bold border transition-all',
-                tierFilter === tNum
-                  ? 'bg-accent-primary/20 border-border-gold text-accent-primary shadow-rpg-gold'
-                  : 'bg-bg-primary border-border-subtle text-text-secondary hover:text-text-primary',
+                'px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 border transition-all',
+                groupByBase
+                  ? 'bg-accent-primary/20 text-accent-primary border-border-gold/60 shadow-rpg-gold'
+                  : 'bg-bg-primary text-text-secondary border-border-subtle hover:text-text-primary',
               ].join(' ')}
             >
-              {getTierRoman(tNum)} (T{tNum})
+              <Layers className="w-3.5 h-3.5" />
+              {lang === 'vi'
+                ? groupByBase
+                  ? 'Gom nhóm Base Items (433 món)'
+                  : 'Hiển thị mọi Tier (1,702 món)'
+                : groupByBase
+                  ? 'Grouped Base Items (433 items)'
+                  : 'All Tier Variants (1,702 items)'}
             </button>
-          ))}
+          </div>
+
+          {!groupByBase && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] font-mono text-text-muted mr-1">
+                Tier (T1–T8):
+              </span>
+              <button
+                type="button"
+                onClick={() => setTierFilter('ALL')}
+                className={[
+                  'px-2 py-1 rounded-lg text-xs font-mono font-bold border transition-all',
+                  tierFilter === 'ALL'
+                    ? 'bg-accent-primary text-bg-primary border-border-gold'
+                    : 'bg-bg-primary border-border-subtle text-text-secondary hover:text-text-primary',
+                ].join(' ')}
+              >
+                ALL
+              </button>
+              {([1, 2, 3, 4, 5, 6, 7, 8] as AlbionTier[]).map((tNum) => (
+                <button
+                  key={tNum}
+                  type="button"
+                  onClick={() => setTierFilter(tNum)}
+                  className={[
+                    'px-2 py-1 rounded-lg text-xs font-mono font-bold border transition-all',
+                    tierFilter === tNum
+                      ? 'bg-accent-primary/20 border-border-gold text-accent-primary shadow-rpg-gold'
+                      : 'bg-bg-primary border-border-subtle text-text-secondary hover:text-text-primary',
+                  ].join(' ')}
+                >
+                  {getTierRoman(tNum)}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -424,7 +462,10 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
                 return (
                   <div
                     key={item.id}
-                    onClick={() => setSelectedItem(item)}
+                    onClick={() => {
+                      setSelectedItem(item);
+                      setPreviewTier(item.tier);
+                    }}
                     className={[
                       'group p-2.5 rounded-xl border transition-all cursor-pointer flex items-center gap-3',
                       isSelected
@@ -460,8 +501,22 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
                         {lang === 'vi' ? item.name_vi : item.name_en}
                       </div>
 
-                      <div className="text-[10px] text-text-secondary truncate">
-                        {lang === 'vi' ? item.name_en : item.sub_category_en}
+                      <div className="flex items-center justify-between gap-1 text-[10px] text-text-secondary mt-0.5">
+                        <span className="truncate">
+                          {lang === 'vi' ? item.sub_category_vi : item.sub_category_en}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPopoverItem(item);
+                          }}
+                          title={lang === 'vi' ? 'Tùy chỉnh Tier/Enchant/Quality' : 'Configure Tier/Enchant/Quality'}
+                          className="px-1.5 py-0.5 rounded bg-bg-primary hover:bg-accent-primary/20 hover:text-accent-primary text-text-muted border border-border-subtle flex items-center gap-1 shrink-0 transition-colors"
+                        >
+                          <Sliders className="w-2.5 h-2.5 text-accent-primary" />
+                          <span>T4-T8</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -588,17 +643,47 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
                 );
               })}
             </div>
+
+            {/* Quick Configure Popover Trigger */}
+            <button
+              type="button"
+              onClick={() => setPopoverItem(selectedItem)}
+              className="w-full mt-2 py-2 px-3 rounded-lg text-xs font-display font-bold uppercase tracking-wider bg-accent-primary/20 hover:bg-accent-primary/30 text-accent-primary border border-border-gold/50 flex items-center justify-center gap-2 transition-all shadow-sm"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              {lang === 'vi'
+                ? 'Tùy Chỉnh Nhanh (Tier / Phù Phép / Phẩm Chất)'
+                : 'Quick Configure (Tier / Enchant / Quality)'}
+            </button>
           </div>
 
           <ItemTooltip
             item={selectedItem}
-            tier={selectedItem.tier}
+            tier={previewTier}
             enchantment={previewEnchant}
             quality={previewQuality}
             lang={lang}
           />
         </div>
       </div>
+
+      {/* Item Configuration Popover Modal */}
+      <ItemConfigPopover
+        isOpen={Boolean(popoverItem)}
+        item={popoverItem || selectedItem}
+        onClose={() => setPopoverItem(null)}
+        onInspect={(configured) => {
+          setSelectedItem(configured);
+          setPreviewTier(configured.tier);
+          setPreviewEnchant(configured.enchantment);
+          setPreviewQuality(configured.quality);
+        }}
+        initialTier={previewTier}
+        initialEnchantment={previewEnchant}
+        initialQuality={previewQuality}
+        lang={lang}
+        mode="inspect"
+      />
     </div>
   );
 };

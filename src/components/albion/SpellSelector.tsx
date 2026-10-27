@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { AlbionItem, AlbionSpell, SpellSlotKey } from '@/types/albion';
 import { getSpellRenderUrl } from '@/services/ao-api';
 import { AppLanguage, UI_TRANSLATIONS } from '@/i18n/translations';
-import { Clock, Crosshair, Layers, Sparkles, Zap } from 'lucide-react';
+import { Clock, Crosshair, Layers, Lock, Sparkles, Zap } from 'lucide-react';
 
 export interface SpellSelectorProps {
   item: AlbionItem;
@@ -105,6 +105,7 @@ export const SpellSelector: React.FC<SpellSelectorProps> = ({
                       spell={sp}
                       lang={lang}
                       selected={isChosen}
+                      itemTier={item.tier}
                       onSelect={() => {
                         onChangeSpell(key, sp.id);
                         setFocusedSlot(key);
@@ -122,13 +123,19 @@ export const SpellSelector: React.FC<SpellSelectorProps> = ({
       {focusedSpell && (
         <div className="p-3 rounded-lg bg-bg-primary/90 border border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-accent-primary text-bg-primary">
                 {focusedSpell.slot}
               </span>
               <span className="font-display font-bold text-sm text-text-primary">
                 {lang === 'vi' ? focusedSpell.name_vi : focusedSpell.name_en}
               </span>
+              {focusedSpell.unlockTier && item.tier < focusedSpell.unlockTier && (
+                <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                  <Lock className="w-3 h-3" />
+                  {lang === 'vi' ? 'Yêu cầu Tier VI+' : 'Requires Tier VI+'}
+                </span>
+              )}
             </div>
             <p className="text-xs text-text-secondary leading-relaxed">
               {lang === 'vi'
@@ -167,6 +174,7 @@ interface BrassSpellOrbProps {
   spell: AlbionSpell;
   lang: AppLanguage;
   selected: boolean;
+  itemTier: number;
   onSelect: () => void;
 }
 
@@ -174,24 +182,33 @@ const BrassSpellOrb: React.FC<BrassSpellOrbProps> = ({
   spell,
   lang,
   selected,
+  itemTier,
   onSelect,
 }) => {
   const [failed, setFailed] = useState(false);
   const url = getSpellRenderUrl(spell.spell_icon, 64);
+  const isLocked = Boolean(spell.unlockTier && itemTier < spell.unlockTier);
+
+  const title = isLocked
+    ? `${lang === 'vi' ? spell.name_vi : spell.name_en} (${lang === 'vi' ? 'Khóa: Yêu cầu Tier VI+' : 'Locked: Requires Tier VI+'})`
+    : (lang === 'vi' ? spell.name_vi : spell.name_en);
 
   return (
     <button
       type="button"
+      disabled={isLocked}
       onClick={(e) => {
         e.stopPropagation();
-        onSelect();
+        if (!isLocked) onSelect();
       }}
-      title={lang === 'vi' ? spell.name_vi : spell.name_en}
+      title={title}
       className={[
-        'w-10 h-10 rounded-full flex items-center justify-center overflow-hidden transition-all',
-        selected
-          ? 'border-2 border-border-gold ring-2 ring-accent-primary/40 scale-105 shadow-rpg-gold bg-bg-elevated'
-          : 'border border-border-gold/40 opacity-70 hover:opacity-100 hover:border-border-gold bg-bg-primary',
+        'relative w-10 h-10 rounded-full flex items-center justify-center overflow-hidden transition-all',
+        isLocked
+          ? 'opacity-40 grayscale cursor-not-allowed border border-border-subtle bg-bg-primary'
+          : selected
+            ? 'border-2 border-border-gold ring-2 ring-accent-primary/40 scale-105 shadow-rpg-gold bg-bg-elevated'
+            : 'border border-border-gold/40 opacity-70 hover:opacity-100 hover:border-border-gold bg-bg-primary',
       ].join(' ')}
     >
       {!failed ? (
@@ -206,6 +223,12 @@ const BrassSpellOrb: React.FC<BrassSpellOrbProps> = ({
         <span className="font-display font-bold text-xs text-accent-primary">
           {spell.slot === 'PASSIVE' ? 'P' : spell.slot}
         </span>
+      )}
+
+      {isLocked && (
+        <div className="absolute inset-0 bg-bg-primary/70 flex items-center justify-center">
+          <Lock className="w-3.5 h-3.5 text-amber-400" />
+        </div>
       )}
     </button>
   );

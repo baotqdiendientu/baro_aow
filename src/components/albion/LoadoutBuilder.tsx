@@ -10,8 +10,10 @@ import {
   SpellSlotKey,
 } from '@/types/albion';
 import {
+  BASE_ALBION_ITEMS,
   FULL_ALBION_DB,
   HydratedAlbionItem,
+  getHydratedVariant,
   normalizeSearchText,
 } from '@/services/albion-db';
 import {
@@ -22,6 +24,7 @@ import { AppLanguage } from '@/i18n/translations';
 import { ItemSlot } from './ItemSlot';
 import { SpellSelector } from './SpellSelector';
 import { ItemTooltip } from './ItemTooltip';
+import { ItemConfigPopover } from './ItemConfigPopover';
 import {
   Check,
   ChevronLeft,
@@ -212,6 +215,7 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
   const [copiedType, setCopiedType] = useState<'url' | 'json' | null>(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [importJsonText, setImportJsonText] = useState('');
+  const [popoverItem, setPopoverItem] = useState<AlbionItem | null>(null);
 
   // Paginated Slot Equipment Picker states
   const [pickerSearch, setPickerSearch] = useState('');
@@ -316,21 +320,29 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
   ]);
 
   const focusedSlotState = loadout[focusedSlot];
-  const focusedItem = focusedSlotState
+  const rawFocusedItem = focusedSlotState
     ? itemByUniqueMap.get(focusedSlotState.uniqueName.toUpperCase())
     : undefined;
 
-  // Filter candidate items from FULL_ALBION_DB (1,702 items) for the focused slot
+  const focusedItem = useMemo(() => {
+    if (!rawFocusedItem || !focusedSlotState) return undefined;
+    return getHydratedVariant(
+      rawFocusedItem.base_identifier,
+      focusedSlotState.tier,
+      focusedSlotState.enchantment,
+      focusedSlotState.quality
+    );
+  }, [rawFocusedItem, focusedSlotState]);
+
+  // Filter candidate base items (~433 base items) for the focused slot
   const candidateItemsForFocusedSlot = useMemo(() => {
     const qNorm = normalizeSearchText(pickerSearch);
-    return FULL_ALBION_DB.filter((item) => {
+    return BASE_ALBION_ITEMS.filter((item) => {
       if (item.slot_type !== focusedSlot) return false;
-      if (pickerTierFilter !== 'ALL' && item.tier !== pickerTierFilter)
-        return false;
       if (qNorm && !item.search_text.includes(qNorm)) return false;
       return true;
     });
-  }, [focusedSlot, pickerTierFilter, pickerSearch]);
+  }, [focusedSlot, pickerSearch]);
 
   const totalPickerPages = Math.max(
     1,
@@ -350,14 +362,13 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
 
   const handleEquipItemInSlot = (slot: AlbionSlotType, newItem: AlbionItem) => {
     setLoadout((prev) => {
-      const current = prev[slot];
       return {
         ...prev,
         [slot]: {
           uniqueName: newItem.unique_name,
           tier: newItem.tier,
-          enchantment: current?.enchantment ?? newItem.enchantment,
-          quality: current?.quality ?? newItem.quality,
+          enchantment: newItem.enchantment ?? 0,
+          quality: newItem.quality ?? 1,
           spells: { ...newItem.default_spells },
         },
       };
@@ -778,6 +789,17 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
                       </button>
                     ))}
                   </div>
+
+                  {focusedItem && (
+                    <button
+                      type="button"
+                      onClick={() => setPopoverItem(focusedItem)}
+                      className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-accent-primary/20 hover:bg-accent-primary/30 text-accent-primary border border-border-gold/40 flex items-center gap-1.5 transition-all shadow-sm"
+                    >
+                      <Sliders className="w-3.5 h-3.5" />
+                      {lang === 'vi' ? 'Tùy Chỉnh' : 'Configure'}
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -844,18 +866,17 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
               {paginatedCandidates.map((cand) => {
                 const isEquipped =
-                  focusedSlotState?.uniqueName.toUpperCase() ===
-                  cand.unique_name.toUpperCase();
+                  focusedSlotState?.uniqueName.toUpperCase().includes(cand.base_identifier.toUpperCase());
                 return (
                   <button
                     key={cand.id}
                     type="button"
-                    onClick={() => handleEquipItemInSlot(focusedSlot, cand)}
+                    onClick={() => setPopoverItem(cand)}
                     className={[
-                      'p-2 rounded-lg border text-left transition-all flex items-center gap-2.5',
+                      'p-2 rounded-lg border text-left transition-all flex items-center gap-2.5 group',
                       isEquipped
                         ? 'bg-bg-elevated border-border-gold shadow-rpg-gold'
-                        : 'bg-bg-primary/70 border-border-subtle hover:border-border-gold/40',
+                        : 'bg-bg-primary/70 border-border-subtle hover:border-border-gold/40 hover:bg-bg-elevated/40',
                     ].join(' ')}
                   >
                     <ItemSlot
@@ -870,25 +891,30 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
                       enchantment={
                         isEquipped && focusedSlotState
                           ? focusedSlotState.enchantment
-                          : cand.enchantment
+                          : 0
                       }
                       quality={
                         isEquipped && focusedSlotState
                           ? focusedSlotState.quality
-                          : cand.quality
+                          : 1
                       }
                       size="sm"
                       selected={isEquipped}
                     />
                     <div className="min-w-0 flex-1">
-                      <div className="font-display font-bold text-xs text-text-primary truncate">
+                      <div className="font-display font-bold text-xs text-text-primary truncate group-hover:text-accent-primary transition-colors">
                         {lang === 'vi' ? cand.name_vi : cand.name_en}
                       </div>
-                      <div className="text-[10px] font-mono text-accent-primary mt-0.5 truncate">
-                        {cand.handedness !== 'NONE'
-                          ? `${cand.handedness} • `
-                          : ''}
-                        {cand.unique_name}
+                      <div className="flex items-center justify-between gap-1 text-[10px] font-mono text-accent-primary mt-0.5">
+                        <span className="truncate">
+                          {cand.handedness !== 'NONE'
+                            ? `${cand.handedness} • `
+                            : ''}
+                          {lang === 'vi' ? cand.sub_category_vi : cand.sub_category_en}
+                        </span>
+                        <span className="px-1.5 py-0.2 rounded bg-bg-secondary text-text-muted border border-border-subtle text-[9px] group-hover:text-accent-primary group-hover:border-border-gold/40 shrink-0">
+                          T4–T8
+                        </span>
                       </div>
                     </div>
                   </button>
@@ -958,6 +984,22 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
           )}
         </div>
       </div>
+
+      {/* Item Configuration Popover Modal */}
+      <ItemConfigPopover
+        isOpen={Boolean(popoverItem)}
+        item={popoverItem || BASE_ALBION_ITEMS[0]}
+        onClose={() => setPopoverItem(null)}
+        onConfirm={(configured) => {
+          handleEquipItemInSlot(focusedSlot, configured);
+          setPopoverItem(null);
+        }}
+        initialTier={focusedSlotState?.tier ?? 6}
+        initialEnchantment={focusedSlotState?.enchantment ?? 0}
+        initialQuality={focusedSlotState?.quality ?? 1}
+        lang={lang}
+        mode="equip"
+      />
     </div>
   );
 };

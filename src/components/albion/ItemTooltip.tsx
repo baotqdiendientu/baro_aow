@@ -28,6 +28,7 @@ import {
   Crosshair,
   Flame,
   Layers,
+  Lock,
   MapPin,
   Shield,
   Sparkles,
@@ -448,6 +449,7 @@ export const ItemTooltip: React.FC<ItemTooltipProps> = ({
                         spell={spell}
                         lang={lang}
                         selected={isSelected}
+                        itemTier={activeTier}
                         onSelect={() => {
                           setSelectedSpells((prev) => ({
                             ...prev,
@@ -473,6 +475,7 @@ export const ItemTooltip: React.FC<ItemTooltipProps> = ({
                   spell={focusedSpell}
                   lang={lang}
                   selected
+                  itemTier={activeTier}
                   onSelect={() => {}}
                   size="lg"
                 />
@@ -493,6 +496,12 @@ export const ItemTooltip: React.FC<ItemTooltipProps> = ({
                         : focusedSpell.name_vi}
                       )
                     </span>
+                    {focusedSpell.unlockTier && activeTier < focusedSpell.unlockTier && (
+                      <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                        <Lock className="w-3 h-3" />
+                        {lang === 'vi' ? 'Yêu cầu Tier VI+' : 'Requires Tier VI+'}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-text-muted font-mono mt-0.5">
                     {t.spellIdLabel} {focusedSpell.name_en}
@@ -580,6 +589,7 @@ export const ItemTooltip: React.FC<ItemTooltipProps> = ({
                     spell={chosen}
                     lang={lang}
                     selected={activeSpellTab === key}
+                    itemTier={activeTier}
                     onSelect={() => setActiveSpellTab(key)}
                   />
                   <div className="min-w-0 flex-1">
@@ -617,6 +627,7 @@ interface SpellCircleButtonProps {
   spell: AlbionSpell;
   lang: AppLanguage;
   selected: boolean;
+  itemTier: number;
   onSelect: () => void;
   size?: 'md' | 'lg';
 }
@@ -625,6 +636,7 @@ const SpellCircleButton: React.FC<SpellCircleButtonProps> = ({
   spell,
   lang,
   selected,
+  itemTier,
   onSelect,
   size = 'md',
 }) => {
@@ -636,21 +648,29 @@ const SpellCircleButton: React.FC<SpellCircleButtonProps> = ({
 
   const spellUrl = getSpellRenderUrl(spell.spell_icon, 64);
   const label = lang === 'vi' ? spell.name_vi : spell.name_en;
+  const isLocked = Boolean(spell.unlockTier && itemTier < spell.unlockTier);
+
+  const title = isLocked
+    ? `${label} (${lang === 'vi' ? 'Khóa: Yêu cầu Tier VI+' : 'Locked: Requires Tier VI+'})`
+    : `${label} (${spell.cooldown}s)`;
 
   return (
     <button
       type="button"
+      disabled={isLocked}
       onClick={(e) => {
         e.stopPropagation();
-        onSelect();
+        if (!isLocked) onSelect();
       }}
-      title={`${label} (${spell.cooldown}s)`}
+      title={title}
       className={[
         'relative rounded-full flex items-center justify-center overflow-hidden transition-all duration-150 shrink-0',
         size === 'lg' ? 'w-11 h-11' : 'w-9 h-9',
-        selected
-          ? 'border-2 border-border-gold ring-2 ring-accent-primary/40 scale-105 shadow-rpg-gold bg-bg-elevated'
-          : 'border border-border-gold/40 opacity-75 hover:opacity-100 hover:border-border-gold bg-bg-primary',
+        isLocked
+          ? 'opacity-40 grayscale cursor-not-allowed border border-border-subtle bg-bg-primary'
+          : selected
+            ? 'border-2 border-border-gold ring-2 ring-accent-primary/40 scale-105 shadow-rpg-gold bg-bg-elevated'
+            : 'border border-border-gold/40 opacity-75 hover:opacity-100 hover:border-border-gold bg-bg-primary',
       ].join(' ')}
     >
       {!imgFailed ? (
@@ -665,6 +685,12 @@ const SpellCircleButton: React.FC<SpellCircleButtonProps> = ({
         <span className="font-display font-bold text-xs text-accent-primary">
           {spell.slot === 'PASSIVE' ? 'P' : spell.slot}
         </span>
+      )}
+
+      {isLocked && (
+        <div className="absolute inset-0 bg-bg-primary/70 flex items-center justify-center">
+          <Lock className="w-3.5 h-3.5 text-amber-400" />
+        </div>
       )}
     </button>
   );

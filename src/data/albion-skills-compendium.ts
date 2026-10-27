@@ -1,6 +1,7 @@
 import { AlbionSpell, SpellSlotKey } from '@/types/albion';
 import { RawSyncedAlbionItem } from '@/services/albion-db';
 import { EXACT_SIGNATURE_SKILLS } from './albion-signature-skills';
+import { WEAPON_LINE_POOLS, getWeaponLineId } from './albion-spell-pools';
 
 export interface CompendiumSkillSet {
   spells: {
@@ -85,6 +86,49 @@ function buildSignatureOrFallback(
 export function resolveEquipmentSkillSet(
   raw: RawSyncedAlbionItem
 ): CompendiumSkillSet {
+  // If weapon belongs to a defined WeaponLine (Axe, Crossbow, Nature Staff, etc.),
+  // inherit shared Q, W, Passive spell pool and resolve the signature E
+  if (raw.slot_type === 'MainHand') {
+    const lineId = getWeaponLineId(raw.base_identifier);
+    const pool = WEAPON_LINE_POOLS[lineId];
+    if (pool) {
+      const exact = EXACT_SIGNATURE_SKILLS[raw.base_identifier.toUpperCase()];
+      const fallbackE: AlbionSpell = {
+        id: `e-${raw.id}`,
+        slot: 'E',
+        spell_icon: exact?.icon || `ITEM:${raw.unique_name}`,
+        name_en: exact?.name_en || `${raw.name_en} Signature`,
+        name_vi: exact?.name_vi || `Kỹ năng tối thượng ${raw.name_vi}`,
+        cooldown: exact?.cooldown ?? 20,
+        energy_cost: exact?.energy ?? 15,
+        cast_time_en: exact?.cast_en ?? 'Instant',
+        cast_time_vi: exact?.cast_vi ?? 'Tức thì',
+        range_en: exact?.range_en ?? '11m',
+        range_vi: exact?.range_vi ?? '11m',
+        description_vi: exact?.desc_vi ?? `Kỹ năng tối thượng đặc trưng của ${raw.name_vi}.`,
+        description_en: exact?.desc_en ?? `Signature ultimate ability of ${raw.name_en}.`,
+      };
+      const eSpell = buildSignatureOrFallback(raw, 'E', fallbackE);
+
+      return {
+        spells: {
+          Q: pool.sharedQSpells,
+          W: pool.sharedWSpells,
+          E: [eSpell],
+          PASSIVE: pool.sharedPassives,
+        },
+        default_spells: {
+          Q: pool.sharedQSpells[0]?.id || '',
+          W: pool.sharedWSpells[0]?.id || '',
+          E: eSpell.id,
+          PASSIVE: pool.sharedPassives[0]?.id || '',
+        },
+        lore_vi: exact?.desc_vi || `Vũ khí thuộc nhánh ${pool.lineId.toUpperCase()} trong Albion Online.`,
+        lore_en: exact?.desc_en || `Weapon from ${pool.lineId.toUpperCase()} weapon line in Albion Online.`,
+      };
+    }
+  }
+
   const baseResult = resolveBaseEquipmentSkillSet(raw);
   const exact = EXACT_SIGNATURE_SKILLS[raw.base_identifier.toUpperCase()];
 
