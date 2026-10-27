@@ -193,24 +193,23 @@ export function getAvailableTiersForBase(baseIdentifier: string): AlbionTier[] {
 
 /**
  * Deduplicated list of distinct Base Items (~433 items total)
- * Grouped by base_identifier with Tier 4 (or lowest available tier) as default representative.
+ * Grouped by base_identifier with Tier 8 (or highest available tier) as default representative
+ * for the sharpest, highest-quality Destiny Board icon preview.
  */
 export const BASE_ALBION_ITEMS: HydratedAlbionItem[] = (() => {
   const representativeMap = new Map<string, RawSyncedAlbionItem>();
   for (const raw of RAW_ITEMS) {
     const existing = representativeMap.get(raw.base_identifier);
-    if (!existing) {
+    if (!existing || raw.tier > existing.tier) {
       representativeMap.set(raw.base_identifier, raw);
-    } else if (existing.tier !== 4) {
-      if (raw.tier === 4) {
-        representativeMap.set(raw.base_identifier, raw);
-      } else if (existing.tier < 4 && raw.tier > existing.tier && raw.tier <= 4) {
-        representativeMap.set(raw.base_identifier, raw);
-      }
     }
   }
   return Array.from(representativeMap.values()).map(hydrateAlbionItem);
 })();
+
+export function getBaseItem(baseIdentifier: string): HydratedAlbionItem | undefined {
+  return BASE_ALBION_ITEMS.find((b) => b.base_identifier === baseIdentifier);
+}
 
 /**
  * Retrieves a hydrated AlbionItem configured for a specific tier, enchantment, and quality.

@@ -6,6 +6,7 @@ import {
   AlbionItem,
   AlbionQuality,
   AlbionTier,
+  SpellSlotKey,
 } from '@/types/albion';
 import {
   ENCHANTMENT_METADATA,
@@ -22,6 +23,7 @@ import {
 } from '@/services/albion-db';
 import { AppLanguage, UI_TRANSLATIONS } from '@/i18n/translations';
 import { ItemSlot } from './ItemSlot';
+import { SpellSelector } from './SpellSelector';
 import { Check, ExternalLink, Sparkles, X, Zap } from 'lucide-react';
 
 export interface ItemConfigPopoverProps {
@@ -68,12 +70,16 @@ export const ItemConfigPopover: React.FC<ItemConfigPopoverProps> = ({
   const [selectedQuality, setSelectedQuality] = useState<AlbionQuality>(
     initialQuality as AlbionQuality
   );
+  const [selectedSpells, setSelectedSpells] = useState<
+    Record<SpellSlotKey, string>
+  >(() => item.default_spells || {});
 
-  // If item changed, sync default tier
+  // If item changed, sync default tier & spells
   React.useEffect(() => {
     setSelectedTier(defaultTier);
     setSelectedEnchant(initialEnchantment as AlbionEnchantment);
     setSelectedQuality(initialQuality as AlbionQuality);
+    setSelectedSpells(item.default_spells || {});
   }, [item.id, defaultTier, initialEnchantment, initialQuality]);
 
   if (!isOpen) return null;
@@ -84,6 +90,14 @@ export const ItemConfigPopover: React.FC<ItemConfigPopoverProps> = ({
     selectedEnchant,
     selectedQuality
   );
+
+  const configuredWithSpells: HydratedAlbionItem = {
+    ...configuredItem,
+    default_spells: {
+      ...configuredItem.default_spells,
+      ...selectedSpells,
+    },
+  };
 
   const dynamicStats = calculateDynamicItemStats(
     item,
@@ -108,7 +122,7 @@ export const ItemConfigPopover: React.FC<ItemConfigPopoverProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-xl rounded-2xl bg-bg-surface border-2 border-border-gold/60 shadow-rpg-gold overflow-hidden flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-2xl rounded-2xl bg-bg-surface border-2 border-border-gold/60 shadow-rpg-gold overflow-hidden flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Bar */}
@@ -308,6 +322,34 @@ export const ItemConfigPopover: React.FC<ItemConfigPopoverProps> = ({
               })}
             </div>
           </div>
+
+          {/* Row 4: Real-time Spell Selection & Tier-Gating */}
+          {configuredItem.spells && (
+            <div className="pt-3 border-t border-border-subtle/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-display font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-accent-primary" />
+                  {lang === 'vi'
+                    ? '4. Kỹ Năng Kế Thừa Theo Nhánh & Tuyệt Kỹ E'
+                    : '4. Shared Weapon Line Spells & Signature E'}
+                </label>
+                <span className="text-[11px] font-mono text-text-muted">
+                  {selectedTier < 6
+                    ? (lang === 'vi' ? 'Tier < VI: Skill W cao cấp bị khóa mờ' : 'Tier < VI: Advanced W skills gated')
+                    : (lang === 'vi' ? 'Tier VI+: Đã mở khóa toàn bộ kỹ năng' : 'Tier VI+: All skills unlocked')}
+                </span>
+              </div>
+
+              <SpellSelector
+                item={configuredWithSpells}
+                selectedSpells={selectedSpells}
+                onChangeSpell={(slot, spellId) =>
+                  setSelectedSpells((prev) => ({ ...prev, [slot]: spellId }))
+                }
+                lang={lang}
+              />
+            </div>
+          )}
         </div>
 
         {/* Footer Actions */}
@@ -330,7 +372,7 @@ export const ItemConfigPopover: React.FC<ItemConfigPopoverProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  onInspect(configuredItem);
+                  onInspect(configuredWithSpells);
                   onClose();
                 }}
                 className="px-4 py-2 rounded-xl text-xs font-semibold bg-bg-secondary hover:bg-bg-elevated border border-border-gold/50 text-accent-primary flex items-center gap-1.5 transition-all shadow-sm"
@@ -344,7 +386,7 @@ export const ItemConfigPopover: React.FC<ItemConfigPopoverProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  onConfirm(configuredItem);
+                  onConfirm(configuredWithSpells);
                   onClose();
                 }}
                 className="px-5 py-2 rounded-xl text-xs font-display font-bold uppercase tracking-wider bg-accent-primary hover:bg-accent-light text-bg-primary flex items-center gap-1.5 transition-all shadow-rpg-gold"

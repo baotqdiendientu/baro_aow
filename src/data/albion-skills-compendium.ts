@@ -1,7 +1,10 @@
 import { AlbionSpell, SpellSlotKey } from '@/types/albion';
 import { RawSyncedAlbionItem } from '@/services/albion-db';
 import { EXACT_SIGNATURE_SKILLS } from './albion-signature-skills';
-import { WEAPON_LINE_POOLS, getWeaponLineId } from './albion-spell-pools';
+import {
+  WEAPON_FAMILY_SPELL_REGISTRY,
+  resolveWeaponFamily,
+} from './albion-spells';
 
 export interface CompendiumSkillSet {
   spells: {
@@ -86,12 +89,12 @@ function buildSignatureOrFallback(
 export function resolveEquipmentSkillSet(
   raw: RawSyncedAlbionItem
 ): CompendiumSkillSet {
-  // If weapon belongs to a defined WeaponLine (Axe, Crossbow, Nature Staff, etc.),
+  // If weapon belongs to a defined WeaponLine (Axe, Sword, Crossbow, Bow, Nature, Fire, Frost, etc.),
   // inherit shared Q, W, Passive spell pool and resolve the signature E
   if (raw.slot_type === 'MainHand') {
-    const lineId = getWeaponLineId(raw.base_identifier);
-    const pool = WEAPON_LINE_POOLS[lineId];
-    if (pool) {
+    const familyId = resolveWeaponFamily(raw.base_identifier);
+    const family = WEAPON_FAMILY_SPELL_REGISTRY[familyId];
+    if (family) {
       const exact = EXACT_SIGNATURE_SKILLS[raw.base_identifier.toUpperCase()];
       const fallbackE: AlbionSpell = {
         id: `e-${raw.id}`,
@@ -112,19 +115,19 @@ export function resolveEquipmentSkillSet(
 
       return {
         spells: {
-          Q: pool.sharedQSpells,
-          W: pool.sharedWSpells,
+          Q: family.slotQ,
+          W: family.slotW,
           E: [eSpell],
-          PASSIVE: pool.sharedPassives,
+          PASSIVE: family.passives,
         },
         default_spells: {
-          Q: pool.sharedQSpells[0]?.id || '',
-          W: pool.sharedWSpells[0]?.id || '',
+          Q: family.slotQ[0]?.id || '',
+          W: family.slotW[0]?.id || '',
           E: eSpell.id,
-          PASSIVE: pool.sharedPassives[0]?.id || '',
+          PASSIVE: family.passives[0]?.id || '',
         },
-        lore_vi: exact?.desc_vi || `Vũ khí thuộc nhánh ${pool.lineId.toUpperCase()} trong Albion Online.`,
-        lore_en: exact?.desc_en || `Weapon from ${pool.lineId.toUpperCase()} weapon line in Albion Online.`,
+        lore_vi: exact?.desc_vi || `Vũ khí thuộc nhánh ${family.name_vi} trong Albion Online.`,
+        lore_en: exact?.desc_en || `Weapon from ${family.name_en} weapon line in Albion Online.`,
       };
     }
   }

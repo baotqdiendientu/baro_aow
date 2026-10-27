@@ -24,6 +24,7 @@ import { AppLanguage } from '@/i18n/translations';
 import { ItemSlot } from './ItemSlot';
 import { ItemTooltip } from './ItemTooltip';
 import { ItemConfigPopover } from './ItemConfigPopover';
+import { DestinyBoardNavigator } from './DestinyBoardNavigator';
 import {
   ChevronLeft,
   ChevronRight,
@@ -210,6 +211,15 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
           </div>
         </div>
       </div>
+
+      {/* DESTINY BOARD 3-LEVEL NAVIGATOR (WARRIOR, HUNTER, MAGE, ARMORS) */}
+      <DestinyBoardNavigator
+        lang={lang}
+        selectedBaseId={selectedItem.base_identifier}
+        onSelectItem={(item) => {
+          setPopoverItem(item);
+        }}
+      />
 
       {/* STEP 3.2: INSTANT MULTI-FILTER BAR */}
       <div className="p-4 sm:p-5 rounded-xl bg-bg-secondary border border-border-subtle space-y-4">
@@ -465,6 +475,7 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
                     onClick={() => {
                       setSelectedItem(item);
                       setPreviewTier(item.tier);
+                      setPopoverItem(item);
                     }}
                     className={[
                       'group p-2.5 rounded-xl border transition-all cursor-pointer flex items-center gap-3',
