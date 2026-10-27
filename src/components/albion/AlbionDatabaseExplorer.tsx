@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   BASE_ALBION_ITEMS,
   FULL_ALBION_DB,
@@ -26,7 +27,9 @@ import { ItemTooltip } from './ItemTooltip';
 import { ItemConfigPopover } from './ItemConfigPopover';
 import { MobileBottomSheet } from './MobileBottomSheet';
 import { DestinyBoardNavigator } from './DestinyBoardNavigator';
+import { WeaponPlaybook } from './WeaponPlaybook';
 import {
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   Database,
@@ -36,6 +39,7 @@ import {
   Search,
   Sliders,
   Sparkles,
+  Swords,
   X,
 } from 'lucide-react';
 
@@ -92,6 +96,7 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
   const [groupByBase, setGroupByBase] = useState(true);
   const [popoverItem, setPopoverItem] = useState<HydratedAlbionItem | null>(null);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const [inspectorTab, setInspectorTab] = useState<'stats' | 'playbook'>('stats');
 
   // Instant Multi-Filter States
   const [searchInput, setSearchInput] = useState('');
@@ -659,26 +664,67 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
               })}
             </div>
 
-            {/* Quick Configure Popover Trigger */}
+            {/* Quick Configure Popover Trigger & Full Playbook Link */}
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setPopoverItem(selectedItem)}
+                className="py-2 px-3 rounded-lg text-xs font-display font-bold uppercase tracking-wider bg-accent-primary/20 hover:bg-accent-primary/30 text-accent-primary border border-border-gold/50 flex items-center justify-center gap-1.5 transition-all shadow-sm"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{lang === 'vi' ? 'Tùy Chỉnh' : 'Configure'}</span>
+              </button>
+              <Link
+                href={`/item/${selectedItem.unique_name}`}
+                className="py-2 px-3 rounded-lg text-xs font-display font-bold uppercase tracking-wider bg-bg-primary hover:bg-bg-elevated text-text-primary border border-border-subtle hover:border-border-gold/50 flex items-center justify-center gap-1.5 transition-all"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-accent-primary" />
+                <span>{lang === 'vi' ? 'Trang Chi Tiết' : 'Full Page'}</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Inspector Sub-Tabs: Stats & Spells vs Weapon Playbook (Mẹo & Khắc Chế) */}
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-bg-secondary border border-border-subtle">
             <button
               type="button"
-              onClick={() => setPopoverItem(selectedItem)}
-              className="w-full mt-2 py-2 px-3 rounded-lg text-xs font-display font-bold uppercase tracking-wider bg-accent-primary/20 hover:bg-accent-primary/30 text-accent-primary border border-border-gold/50 flex items-center justify-center gap-2 transition-all shadow-sm"
+              onClick={() => setInspectorTab('stats')}
+              className={[
+                'flex-1 py-2 px-3 rounded-lg font-display font-bold text-xs flex items-center justify-center gap-1.5 transition-all',
+                inspectorTab === 'stats'
+                  ? 'bg-accent-primary text-bg-primary shadow-rpg-gold'
+                  : 'text-text-secondary hover:text-text-primary',
+              ].join(' ')}
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              {lang === 'vi'
-                ? 'Tùy Chỉnh Nhanh (Tier / Phù Phép / Phẩm Chất)'
-                : 'Quick Configure (Tier / Enchant / Quality)'}
+              <Layers className="w-3.5 h-3.5" />
+              <span>{lang === 'vi' ? 'Chỉ Số & Kỹ Năng' : 'Stats & Spells'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setInspectorTab('playbook')}
+              className={[
+                'flex-1 py-2 px-3 rounded-lg font-display font-bold text-xs flex items-center justify-center gap-1.5 transition-all',
+                inspectorTab === 'playbook'
+                  ? 'bg-accent-primary text-bg-primary shadow-rpg-gold'
+                  : 'text-text-secondary hover:text-text-primary',
+              ].join(' ')}
+            >
+              <Swords className="w-3.5 h-3.5" />
+              <span>{lang === 'vi' ? 'Mẹo & Khắc Chế' : 'Playbook & Tips'}</span>
             </button>
           </div>
 
-          <ItemTooltip
-            item={selectedItem}
-            tier={previewTier}
-            enchantment={previewEnchant}
-            quality={previewQuality}
-            lang={lang}
-          />
+          {inspectorTab === 'stats' ? (
+            <ItemTooltip
+              item={selectedItem}
+              tier={previewTier}
+              enchantment={previewEnchant}
+              quality={previewQuality}
+              lang={lang}
+            />
+          ) : (
+            <WeaponPlaybook item={selectedItem} lang={lang} />
+          )}
         </div>
       </div>
 
@@ -707,13 +753,45 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
         title={lang === 'vi' ? selectedItem.name_vi : selectedItem.name_en}
       >
         <div className="space-y-4">
-          <ItemTooltip
-            item={selectedItem}
-            tier={previewTier}
-            enchantment={previewEnchant}
-            quality={previewQuality}
-            lang={lang}
-          />
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-bg-secondary border border-border-subtle">
+            <button
+              type="button"
+              onClick={() => setInspectorTab('stats')}
+              className={[
+                'flex-1 py-1.5 px-2 rounded-lg font-display font-bold text-xs',
+                inspectorTab === 'stats'
+                  ? 'bg-accent-primary text-bg-primary'
+                  : 'text-text-secondary',
+              ].join(' ')}
+            >
+              {lang === 'vi' ? 'Chỉ Số & Kỹ Năng' : 'Stats & Spells'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setInspectorTab('playbook')}
+              className={[
+                'flex-1 py-1.5 px-2 rounded-lg font-display font-bold text-xs',
+                inspectorTab === 'playbook'
+                  ? 'bg-accent-primary text-bg-primary'
+                  : 'text-text-secondary',
+              ].join(' ')}
+            >
+              {lang === 'vi' ? 'Mẹo & Khắc Chế' : 'Playbook & Tips'}
+            </button>
+          </div>
+
+          {inspectorTab === 'stats' ? (
+            <ItemTooltip
+              item={selectedItem}
+              tier={previewTier}
+              enchantment={previewEnchant}
+              quality={previewQuality}
+              lang={lang}
+            />
+          ) : (
+            <WeaponPlaybook item={selectedItem} lang={lang} />
+          )}
+
           <button
             type="button"
             onClick={() => {

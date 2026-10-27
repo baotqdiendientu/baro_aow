@@ -3,13 +3,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlbionEnchantment, AlbionQuality, AlbionTier } from '@/types/albion';
 import { getItemImageUrl, getLocalItemImageUrl } from '@/lib/albion-image';
-import { ShieldAlert } from 'lucide-react';
+import { getSpellRenderUrl } from '@/services/ao-api';
+import { ShieldAlert, Sparkles } from 'lucide-react';
 
 const FAILED_IMAGE_CACHE = new Set<string>();
 
 export interface AlbionImageProps {
   uniqueName: string;
   alt: string;
+  type?: 'item' | 'spell';
+  slotBadge?: string;
   tier?: AlbionTier;
   defaultTier?: AlbionTier;
   enchantment?: AlbionEnchantment | number;
@@ -22,10 +25,13 @@ export interface AlbionImageProps {
 /**
  * Step 2.3: <AlbionImage /> with instant (<2ms) local static icon rendering
  * and automatic multi-stage fallback to remote Render CDN when needed.
+ * Supports both `type="item"` (default) and `type="spell"` for Combo Sequence UI.
  */
 export const AlbionImage: React.FC<AlbionImageProps> = ({
   uniqueName,
   alt,
+  type = 'item',
+  slotBadge,
   tier,
   defaultTier = 4,
   enchantment = 0,
@@ -34,6 +40,17 @@ export const AlbionImage: React.FC<AlbionImageProps> = ({
   className = 'w-[86%] h-[86%] object-contain',
 }) => {
   const candidateUrls = useMemo(() => {
+    if (type === 'spell') {
+      const localSpellUrl = getSpellRenderUrl(uniqueName, size);
+      const cleanSpellName = uniqueName.replace(/^ITEM:/, '');
+      const remoteSpellUrl = `https://render.albiononline.com/v1/spell/${encodeURIComponent(cleanSpellName)}.png?size=${size}`;
+      const ordered = [localSpellUrl, remoteSpellUrl];
+      const unique = Array.from(new Set(ordered)).filter(
+        (url) => !FAILED_IMAGE_CACHE.has(url)
+      );
+      return unique.length > 0 ? unique : [remoteSpellUrl];
+    }
+
     // 1. Instant local pre-cached icon for target tier (or defaultTier if target tier doesn't exist locally)
     const localTargetTier = getLocalItemImageUrl(uniqueName, tier);
     const localDefaultTier = getLocalItemImageUrl(uniqueName, defaultTier);
@@ -82,7 +99,7 @@ export const AlbionImage: React.FC<AlbionImageProps> = ({
       (url) => !FAILED_IMAGE_CACHE.has(url)
     );
     return unique.length > 0 ? unique : [remoteDefaultTier];
-  }, [uniqueName, tier, defaultTier, enchantment, quality, size]);
+  }, [type, uniqueName, tier, defaultTier, enchantment, quality, size]);
 
   const [candidateIndex, setCandidateIndex] = useState(0);
   const [allFailed, setAllFailed] = useState(false);
@@ -95,6 +112,18 @@ export const AlbionImage: React.FC<AlbionImageProps> = ({
   const activeUrl = candidateUrls[candidateIndex] ?? candidateUrls[0];
 
   if (allFailed) {
+    if (type === 'spell') {
+      return (
+        <div className="z-10 flex flex-col items-center justify-center text-accent-primary font-display font-bold text-xs">
+          {slotBadge ? (
+            <span>{slotBadge}</span>
+          ) : (
+            <Sparkles className="w-4 h-4 text-accent-primary" />
+          )}
+        </div>
+      );
+    }
+
     return (
       <div className="z-10 flex flex-col items-center justify-center text-text-primary/80">
         <ShieldAlert className="w-5 h-5 text-accent-primary" />
