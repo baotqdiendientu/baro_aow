@@ -356,7 +356,9 @@ export const ItemConfigPopover: React.FC<ItemConfigPopoverProps> = ({
         <div className="px-5 py-3.5 bg-bg-elevated border-t border-border-subtle flex items-center justify-between gap-3">
           <div className="font-mono text-xs text-text-secondary hidden sm:block">
             {lang === 'vi' ? 'Tổng chỉ số IP:' : 'Total IP:'}{' '}
-            <strong className="text-accent-primary font-bold">{dynamicStats.totalIp}</strong>
+            <strong className="text-accent-primary font-bold font-mono">
+              {dynamicStats.totalIp.toLocaleString('en-US')} IP
+            </strong>
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">

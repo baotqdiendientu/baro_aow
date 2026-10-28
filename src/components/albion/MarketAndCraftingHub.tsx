@@ -24,37 +24,10 @@ import {
   Sparkles,
   TrendingUp,
 } from 'lucide-react';
-
-const ALBION_CITIES = [
-  { id: 'Bridgewatch', color: '#D97706', bonus_vi: 'Nỏ, Dao Găm, Trượng Nguyền', bonus_en: 'Crossbow, Dagger, Cursed' },
-  { id: 'Martlock', color: '#3B82F6', bonus_vi: 'Rìu, Giày Sắt, Tay Phụ', bonus_en: 'Axe, Plate Boots, Off-Hand' },
-  { id: 'Thetford', color: '#9333EA', bonus_vi: 'Trượng Tự Nhiên, Trượng Lửa, Áo Da', bonus_en: 'Nature, Fire Staff, Leather Armor' },
-  { id: 'Lymhurst', color: '#16A34A', bonus_vi: 'Cung, Kiếm, Mũ Da', bonus_en: 'Bow, Sword, Leather Hood' },
-  { id: 'Fort Sterling', color: '#E2E8F0', bonus_vi: 'Búa, Thương, Áo Vải', bonus_en: 'Hammer, Spear, Cloth Robe' },
-  { id: 'Caerleon', color: '#DC2626', bonus_vi: 'Đồ Chiến Đấu, Thức Ăn, Thuốc', bonus_en: 'War Gloves, Food, Potions' },
-  { id: 'Brecilien', color: '#0D9488', bonus_vi: 'Đồ Sương Mù, Thú Cưỡi Cú', bonus_en: 'Mists Gear, Mystic Owl' },
-  { id: 'Black Market', color: '#E5A93C', bonus_vi: 'Chợ Đen Caerleon (Hệ thống thu mua)', bonus_en: 'Caerleon NPC Loot Buyer' },
-] as const;
-
-type AlbionServerRegion = 'east' | 'west' | 'europe';
-
-interface CityMarketRow {
-  city: string;
-  color: string;
-  bonus_vi: string;
-  bonus_en: string;
-  sellPriceMin: number;
-  buyPriceMax: number;
-  updatedMinutesAgo: number;
-  isLiveApi: boolean;
-}
-
-// 5-Minute Stale-While-Revalidate Cache
-const marketCache = new Map<
-  string,
-  { timestamp: number; rows: CityMarketRow[] }
->();
-const CACHE_TTL_MS = 5 * 60 * 1000;
+import {
+  AlbionServerRegion,
+  useAlbionMarket,
+} from '@/hooks/useAlbionMarket';
 
 export interface MarketAndCraftingHubProps {
   lang: AppLanguage;
@@ -71,8 +44,6 @@ export const MarketAndCraftingHub: React.FC<MarketAndCraftingHubProps> = ({
   );
   const [tier, setTier] = useState<AlbionTier>(6);
   const [enchantment, setEnchantment] = useState<AlbionEnchantment>(2);
-  const [marketRows, setMarketRows] = useState<CityMarketRow[]>([]);
-  const [loadingMarket, setLoadingMarket] = useState(false);
 
   // Crafting & Farming Profit Calculator State
   const [craftQuantity, setCraftQuantity] = useState<number>(10);
@@ -86,93 +57,18 @@ export const MarketAndCraftingHub: React.FC<MarketAndCraftingHubProps> = ({
     [selectedItem, tier, enchantment]
   );
 
-  // Generate baseline deterministic city prices & overlay live AODP API data when available
-  useEffect(() => {
-    const cacheKey = `${serverRegion}:${selectedItem.base_identifier}:T${tier}.${enchantment}`;
-    const cached = marketCache.get(cacheKey);
+  const apiItemCode = useMemo(
+    () => buildUniqueName(selectedItem.base_identifier, tier, enchantment, true),
+    [selectedItem.base_identifier, tier, enchantment]
+  );
 
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-      setMarketRows(cached.rows);
-      return;
-    }
-
-    let cancelled = false;
-    setLoadingMarket(true);
-
-    const basePrice = dynamicStats.estimatedSilver;
-    const cityMultipliers: Record<string, { sell: number; buy: number; mins: number }> = {
-      Bridgewatch: { sell: 0.96, buy: 0.84, mins: 4 },
-      Martlock: { sell: 0.98, buy: 0.85, mins: 7 },
-      Thetford: { sell: 0.94, buy: 0.82, mins: 3 },
-      Lymhurst: { sell: 1.01, buy: 0.87, mins: 6 },
-      'Fort Sterling': { sell: 1.03, buy: 0.88, mins: 9 },
-      Caerleon: { sell: 1.09, buy: 0.95, mins: 2 },
-      Brecilien: { sell: 1.12, buy: 0.96, mins: 5 },
-      'Black Market': { sell: 1.19, buy: 1.14, mins: 1 },
-    };
-
-    const fallbackRows: CityMarketRow[] = ALBION_CITIES.map((c) => {
-      const m = cityMultipliers[c.id] || { sell: 1, buy: 0.85, mins: 5 };
-      return {
-        city: c.id,
-        color: c.color,
-        bonus_vi: c.bonus_vi,
-        bonus_en: c.bonus_en,
-        sellPriceMin: Math.round(basePrice * m.sell),
-        buyPriceMax: Math.round(basePrice * m.buy),
-        updatedMinutesAgo: m.mins,
-        isLiveApi: false,
-      };
-    });
-
-    const apiItemCode = buildUniqueName(
-      selectedItem.base_identifier,
-      tier,
-      enchantment,
-      true
-    );
-    const locationsParam = encodeURIComponent(
-      ALBION_CITIES.map((c) => c.id).join(',')
-    );
-    const apiUrl = `https://${serverRegion}.albion-online-data.com/api/v2/stats/prices/${encodeURIComponent(apiItemCode)}.json?locations=${locationsParam}`;
-
-    fetch(apiUrl)
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data: Array<{ city: string; sell_price_min: number; buy_price_max: number }>) => {
-        if (cancelled) return;
-        const merged = fallbackRows.map((row) => {
-          const match = data.find(
-            (d) =>
-              d.city.toLowerCase() === row.city.toLowerCase() &&
-              (d.sell_price_min > 0 || d.buy_price_max > 0)
-          );
-          if (!match) return row;
-          return {
-            ...row,
-            sellPriceMin:
-              match.sell_price_min > 0 ? match.sell_price_min : row.sellPriceMin,
-            buyPriceMax:
-              match.buy_price_max > 0 ? match.buy_price_max : row.buyPriceMax,
-            updatedMinutesAgo: 1,
-            isLiveApi: true,
-          };
-        });
-        marketCache.set(cacheKey, { timestamp: Date.now(), rows: merged });
-        setMarketRows(merged);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        marketCache.set(cacheKey, { timestamp: Date.now(), rows: fallbackRows });
-        setMarketRows(fallbackRows);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingMarket(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [serverRegion, selectedItem, tier, enchantment, dynamicStats.estimatedSilver]);
+  // Robust hook with in-memory + localStorage 5-minute persistent cache
+  const {
+    rows: marketRows,
+    loading: loadingMarket,
+    isLive: isLiveMarket,
+    refresh: refreshMarket,
+  } = useAlbionMarket(apiItemCode, dynamicStats.estimatedSilver, serverRegion);
 
   // Identify Best Buy (Lowest Sell Order) and Best Sell (Highest Sell/Buy Order)
   const marketArbitrage = useMemo(() => {
@@ -411,12 +307,17 @@ export const MarketAndCraftingHub: React.FC<MarketAndCraftingHubProps> = ({
                   : '8-City Sell Order & Buy Order Comparison'}
               </span>
             </h3>
-            <span className="flex items-center gap-1 text-[11px] font-mono text-emerald-400">
+            <button
+              type="button"
+              onClick={() => refreshMarket()}
+              title={lang === 'vi' ? 'Làm mới giá chợ trực tiếp' : 'Refresh live prices'}
+              className="flex items-center gap-1.5 px-2 py-1 rounded bg-bg-primary hover:bg-bg-elevated border border-border-subtle hover:border-border-gold/50 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 transition-all cursor-pointer"
+            >
               <RefreshCw
                 className={`w-3 h-3 ${loadingMarket ? 'animate-spin' : ''}`}
               />
-              <span>SWR Cache 5m</span>
-            </span>
+              <span>{isLiveMarket ? 'AODP Live' : 'SWR Cache 5m'}</span>
+            </button>
           </div>
 
           {/* Arbitrage Callout Banner */}

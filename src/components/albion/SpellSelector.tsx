@@ -131,7 +131,7 @@ export const SpellSelector: React.FC<SpellSelectorProps> = ({
                 {lang === 'vi' ? focusedSpell.name_vi : focusedSpell.name_en}
               </span>
               {focusedSpell.unlockTier && item.tier < focusedSpell.unlockTier && (
-                <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 flex items-center gap-1">
                   <Lock className="w-3 h-3" />
                   {lang === 'vi' ? 'Yêu cầu Tier VI+' : 'Requires Tier VI+'}
                 </span>
@@ -145,21 +145,21 @@ export const SpellSelector: React.FC<SpellSelectorProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px] shrink-0">
-            <span className="flex items-center gap-1 px-2 py-1 rounded bg-bg-elevated border border-border-subtle text-sky-300">
+            <span className="flex items-center gap-1 px-2 py-1 rounded bg-bg-elevated border border-border-subtle text-sky-700 dark:text-sky-300">
               <Clock className="w-3 h-3" />
               {focusedSpell.cooldown}s
             </span>
-            <span className="flex items-center gap-1 px-2 py-1 rounded bg-bg-elevated border border-border-subtle text-blue-300">
+            <span className="flex items-center gap-1 px-2 py-1 rounded bg-bg-elevated border border-border-subtle text-blue-700 dark:text-blue-300">
               <Zap className="w-3 h-3" />
               {focusedSpell.energy_cost}
             </span>
-            <span className="flex items-center gap-1 px-2 py-1 rounded bg-bg-elevated border border-border-subtle text-amber-300">
+            <span className="flex items-center gap-1 px-2 py-1 rounded bg-bg-elevated border border-border-subtle text-amber-700 dark:text-amber-300">
               <Layers className="w-3 h-3" />
               {lang === 'vi'
                 ? focusedSpell.cast_time_vi
                 : focusedSpell.cast_time_en}
             </span>
-            <span className="flex items-center gap-1 px-2 py-1 rounded bg-bg-elevated border border-border-subtle text-emerald-300">
+            <span className="flex items-center gap-1 px-2 py-1 rounded bg-bg-elevated border border-border-subtle text-emerald-700 dark:text-emerald-300">
               <Crosshair className="w-3 h-3" />
               {lang === 'vi' ? focusedSpell.range_vi : focusedSpell.range_en}
             </span>

@@ -217,7 +217,7 @@ export const DestinyBoardNavigator: React.FC<DestinyBoardNavigatorProps> = ({
               >
                 {/* Top Badge Row */}
                 <div className="flex items-center justify-between gap-1 mb-2">
-                  <span className="px-1.5 py-0.5 text-[9px] font-mono font-bold rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                  <span className="px-1.5 py-0.5 text-[9px] font-mono font-bold rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40">
                     {baseItem.handedness !== 'NONE' ? baseItem.handedness : 'BASE'}
                   </span>
                   <span className="text-[10px] font-mono font-bold text-accent-primary">

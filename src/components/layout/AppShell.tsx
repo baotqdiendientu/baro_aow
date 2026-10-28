@@ -160,7 +160,7 @@ export const AppShell: React.FC<AppShellProps> = ({
               <span className="font-display font-bold text-sm md:text-base tracking-wider text-text-primary">
                 ALBION CODEX
               </span>
-              <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40">
                 Full 4-Phase Suite
               </span>
             </div>
@@ -226,7 +226,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                     </span>
                   )}
                   {parsedQuery.enchantment !== undefined && (
-                    <span className="px-1.5 py-0.5 font-mono font-bold rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    <span className="px-1.5 py-0.5 font-mono font-bold rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40">
                       {t.enchantPrefix} .{parsedQuery.enchantment}
                     </span>
                   )}

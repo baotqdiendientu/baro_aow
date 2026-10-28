@@ -4,6 +4,7 @@ import { SAMPLE_ALBION_ITEMS } from '@/data/sample-items';
 import { getItemRenderUrl } from '@/services/ao-api';
 import { LoadoutBuilder } from '@/components/albion/LoadoutBuilder';
 import { ThemeToggle } from '@/components/albion/ThemeToggle';
+import { MobileBottomNav } from '@/components/albion/MobileBottomNav';
 import { ArrowLeft } from 'lucide-react';
 
 interface BuildPageProps {
@@ -59,7 +60,7 @@ export default async function BuildDetailPage({ params }: BuildPageProps) {
   const { slug } = await params;
 
   return (
-    <div className="min-h-screen bg-bg-primary text-text-primary p-4 sm:p-8">
+    <div className="min-h-screen bg-bg-primary text-text-primary p-3 md:p-6 pb-24 lg:pb-8">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between gap-3">
           <Link
@@ -79,6 +80,8 @@ export default async function BuildDetailPage({ params }: BuildPageProps) {
 
         <LoadoutBuilder lang="vi" />
       </div>
+
+      <MobileBottomNav activeTab="build" lang="vi" />
     </div>
   );
 }

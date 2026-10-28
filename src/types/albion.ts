@@ -108,3 +108,14 @@ export interface AlbionItem {
     PASSIVE: string;
   };
 }
+
+export interface EquippedSlotState {
+  uniqueName: string;
+  tier: AlbionTier;
+  enchantment: AlbionEnchantment;
+  quality: AlbionQuality;
+  spells: Record<SpellSlotKey, string>;
+}
+
+export type LoadoutMap = Partial<Record<AlbionSlotType, EquippedSlotState | null>>;
+

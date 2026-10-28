@@ -242,7 +242,7 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
               <Compass className="w-3.5 h-3.5" />
               DESTINY BOARD MASTER ARMORY
             </span>
-            <span className="px-2 py-0.5 text-[10px] font-mono rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+            <span className="px-2 py-0.5 text-[10px] font-mono rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
               {BASE_ALBION_ITEMS.length} Base Weapons & Gear ({FULL_ALBION_DB.length.toLocaleString('en-US')} Variants)
             </span>
           </div>
@@ -559,7 +559,7 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
                   >
                     {/* Top Badge Row */}
                     <div className="flex items-center justify-between gap-1 mb-1.5">
-                      <span className="px-1.5 py-0.5 text-[9px] font-mono font-bold rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                      <span className="px-1.5 py-0.5 text-[9px] font-mono font-bold rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40">
                         {item.handedness !== 'NONE' ? item.handedness : 'GEAR'}
                       </span>
                       <span className="text-[10px] font-mono font-bold text-accent-primary">
