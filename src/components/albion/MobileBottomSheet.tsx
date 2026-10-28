@@ -20,19 +20,31 @@ export const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
   const [currentY, setCurrentY] = useState<number>(0);
   const sheetRef = useRef<HTMLDivElement>(null);
 
-  // Prevent background scroll when bottom sheet is open
+  // Prevent background scroll ONLY on real mobile view (< 768px)
   useEffect(() => {
-    if (isOpen) {
+    const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
+
+    if (isOpen && isMobile()) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
       setCurrentY(0);
     }
+
+    const handleResize = () => {
+      if (!isMobile()) {
+        document.body.style.overflow = '';
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
     return () => {
       document.body.style.overflow = '';
+      window.removeEventListener('resize', handleResize);
     };
   }, [isOpen]);
 
+  // Don't render on desktop (>= 768px) or when closed
   if (!isOpen) return null;
 
   const handleTouchStart = (e: React.TouchEvent) => {

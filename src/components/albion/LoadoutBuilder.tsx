@@ -434,7 +434,7 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
 
     const handleClick = () => {
       setFocusedSlot(slotKey);
-      if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      if (typeof window !== 'undefined' && window.innerWidth < 768) {
         if (state && item) {
           setMobileSheetOpen(true);
         }

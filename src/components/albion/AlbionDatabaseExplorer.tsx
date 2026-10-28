@@ -475,9 +475,9 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
       {/* ==================================================================== */}
       {/* MAIN SINGLE UNIFIED WORKSPACE: ITEM GRID (LEFT) + INSPECTOR (RIGHT) */}
       {/* ==================================================================== */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT (7 cols): UNIFIED ITEM GRID */}
-        <div className="xl:col-span-7 space-y-4">
+        <div className="lg:col-span-7 space-y-4">
           {/* Active Branch Header */}
           <div className="p-3.5 rounded-xl bg-bg-secondary border border-border-subtle flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -545,8 +545,8 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
                     onClick={() => {
                       setSelectedItem(item);
                       setPreviewTier(item.tier);
-                      // On mobile/tablet, open bottom sheet immediately without popup error
-                      if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+                      // On mobile (< 768px), open bottom sheet immediately
+                      if (typeof window !== 'undefined' && window.innerWidth < 768) {
                         setMobileDetailOpen(true);
                       }
                     }}
@@ -687,7 +687,7 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
         </div>
 
         {/* RIGHT (5 cols): STICKY LIVE INSPECTOR PANEL (NO POPUP REQUIRED) */}
-        <div className="xl:col-span-5 xl:sticky xl:top-20 space-y-4">
+        <div className="lg:col-span-5 lg:sticky lg:top-20 space-y-4">
           {/* Quick Modifier Card: Enchantment (.0-.4) & Quality (Q1-Q5) */}
           <div className="p-4 rounded-xl bg-bg-secondary border border-border-subtle space-y-3 shadow-rpg-gold">
             <div className="flex items-center justify-between">
@@ -829,7 +829,7 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
         mode="inspect"
       />
 
-      {/* Mobile Bottom Sheet (< 1280px) for Item Details (Swipeable, No Popup Error) */}
+      {/* Mobile Bottom Sheet (< 768px) for Item Details (Swipeable) */}
       <MobileBottomSheet
         isOpen={mobileDetailOpen}
         onClose={() => setMobileDetailOpen(false)}
