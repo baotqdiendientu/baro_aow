@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { FULL_ALBION_DB } from '@/services/albion-db';
+import { BASE_ALBION_ITEMS, FULL_ALBION_DB } from '@/services/albion-db';
 import { getItemImageUrl } from '@/lib/albion-image';
 import { ItemDetailClientView } from '@/components/albion/ItemDetailClientView';
 
@@ -7,10 +7,10 @@ interface ItemPageProps {
   params: Promise<{ uniqueName: string }>;
 }
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 export function generateStaticParams() {
-  return FULL_ALBION_DB.map((item) => ({
+  return BASE_ALBION_ITEMS.map((item) => ({
     uniqueName: item.unique_name,
   }));
 }

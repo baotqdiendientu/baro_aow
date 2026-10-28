@@ -66,9 +66,7 @@ export function supportsEnchantedSprite(cleanUniqueName: string): boolean {
   return true;
 }
 
-export const APP_BASE_PATH =
-  process.env.NEXT_PUBLIC_BASE_PATH ??
-  (process.env.NODE_ENV === 'production' ? '/baro_aow' : '');
+export const APP_BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 /**
  * Returns the instant local static icon path (`/albion-icons/items/${cleanUniqueName}.png`)

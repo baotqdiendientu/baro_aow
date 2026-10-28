@@ -1366,3 +1366,4 @@ PVE_GUIDES_DB.HCE.roles = PVE_GUIDES_DB.Avalonian.roles;
 PVE_GUIDES_DB.HCE.bosses = PVE_GUIDES_DB.Avalonian.bosses.slice(0, 2);
 PVE_GUIDES_DB.Corrupted.roles = [PVE_GUIDES_DB.Avalonian.roles[2]];
 PVE_GUIDES_DB.Corrupted.bosses = [PVE_GUIDES_DB.Avalonian.bosses[1]];
+

@@ -706,3 +706,4 @@ const BossMechanicAccordionCard: React.FC<{
     </div>
   );
 };
+

@@ -150,3 +150,4 @@ export const ItemDetailClientView: React.FC<ItemDetailClientViewProps> = ({
     </div>
   );
 };
+
