@@ -177,3 +177,4 @@ export function useAlbionMarket(
     refresh: () => fetchPrices(true),
   };
 }
+

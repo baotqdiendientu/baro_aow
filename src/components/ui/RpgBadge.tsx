@@ -43,3 +43,4 @@ export const RpgBadge: React.FC<RpgBadgeProps> = ({
     </span>
   );
 };
+

@@ -58,6 +58,9 @@ export const WeaponPlaybook: React.FC<WeaponPlaybookProps> = ({
   // 1. State for "Check Đối Thủ" (Matchup Quick Check)
   const [opponentQuery, setOpponentQuery] = useState('Bloodletter');
 
+  // Mode/Activity Filter for Combos
+  const [selectedActivity, setSelectedActivity] = useState<string>('ALL');
+
   // 2. State for Interactive Community Tips (Upvotes / Downvotes + Add Tip)
   const [tips, setTips] = useState<UGCTip[]>(playbook.communityTips);
   const [userVotes, setUserVotes] = useState<Record<string, 'up' | 'down' | null>>({});
@@ -134,6 +137,42 @@ export const WeaponPlaybook: React.FC<WeaponPlaybookProps> = ({
     setShowAddTipForm(false);
   };
 
+  const activityTabs = [
+    { id: 'ALL', label_vi: 'Tất cả Combo', label_en: 'All Combos' },
+    { id: '1V1', label_vi: '1v1 Mists / Corrupted', label_en: '1v1 Mists / Corrupted' },
+    { id: 'PVE', label_vi: 'PvE / Dungeon Burst', label_en: 'PvE Burst' },
+    { id: 'BRAWL', label_vi: 'Small-Scale / Brawl', label_en: 'Small-Scale / Brawl' },
+    { id: 'GANK', label_vi: 'Gank / Roam / ZvZ', label_en: 'Gank / Roam / ZvZ' },
+  ];
+
+  const filteredCombos = useMemo(() => {
+    if (selectedActivity === 'ALL') return playbook.combos;
+    const matches = playbook.combos.filter((c) => {
+      if (
+        selectedActivity === '1V1' &&
+        (c.modeTag.includes('1v1') ||
+          c.modeTag.includes('Corrupted') ||
+          c.modeTag.includes('Mists'))
+      )
+        return true;
+      if (selectedActivity === 'PVE' && c.modeTag.includes('PvE')) return true;
+      if (
+        selectedActivity === 'BRAWL' &&
+        (c.modeTag.includes('Brawl') || c.modeTag.includes('Small-Scale'))
+      )
+        return true;
+      if (
+        selectedActivity === 'GANK' &&
+        (c.modeTag.includes('Gank') ||
+          c.modeTag.includes('Roam') ||
+          c.modeTag.includes('ZvZ'))
+      )
+        return true;
+      return false;
+    });
+    return matches.length > 0 ? matches : playbook.combos;
+  }, [playbook.combos, selectedActivity]);
+
   const quickEnemyPills = [
     'Bloodletter',
     'Deathgivers',
@@ -142,6 +181,11 @@ export const WeaponPlaybook: React.FC<WeaponPlaybookProps> = ({
     'Carving Sword',
     'Bow',
     'Battleaxe',
+    'Battle Bracers',
+    'Druidic Staff',
+    '1H Fire Staff',
+    'Double Bladed',
+    'Great Frost',
   ];
 
   return (
@@ -209,8 +253,30 @@ export const WeaponPlaybook: React.FC<WeaponPlaybookProps> = ({
           </span>
         </div>
 
+        {/* Activity Filter Tabs */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          {activityTabs.map((tab) => {
+            const isActive = selectedActivity === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setSelectedActivity(tab.id)}
+                className={[
+                  'px-3 py-1.5 rounded-lg text-xs font-mono font-bold whitespace-nowrap transition-all border',
+                  isActive
+                    ? 'bg-accent-primary text-bg-primary border-border-gold shadow-rpg-gold'
+                    : 'bg-bg-primary text-text-secondary border-border-subtle hover:text-text-primary hover:border-border-gold/40',
+                ].join(' ')}
+              >
+                {lang === 'vi' ? tab.label_vi : tab.label_en}
+              </button>
+            );
+          })}
+        </div>
+
         <div className="space-y-4">
-          {playbook.combos.map((combo) => (
+          {filteredCombos.map((combo) => (
             <div
               key={combo.id}
               className="p-4 rounded-xl bg-bg-primary/90 border border-border-gold/30 hover:border-border-gold/60 transition-all space-y-3.5"
@@ -709,11 +775,33 @@ const EmergencyMatchupCard: React.FC<{
           />
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2 py-0.5 text-[10px] font-mono font-extrabold uppercase rounded bg-red-500 text-white flex items-center gap-1">
+              <span className="px-2 py-0.5 text-[10px] font-mono font-extrabold uppercase rounded bg-red-500 text-white flex items-center gap-1 shadow-sm">
                 <AlertTriangle className="w-3 h-3" />
                 {lang === 'vi'
-                  ? `CẢNH BÁO ĐỐI ĐẦU: ${enemy.threatLevel}`
-                  : `THREAT LEVEL: ${enemy.threatLevel}`}
+                  ? `MỨC ĐỘ NGUY HIỂM: ${enemy.threatLevel}`
+                  : `THREAT: ${enemy.threatLevel}`}
+              </span>
+              <span
+                className={[
+                  'px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded border',
+                  enemy.relation === 'weakAgainst'
+                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                    : enemy.relation === 'goodAgainst'
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+                ].join(' ')}
+              >
+                {lang === 'vi'
+                  ? enemy.relation === 'weakAgainst'
+                    ? 'Kèo Khó (Thiên Địch)'
+                    : enemy.relation === 'goodAgainst'
+                      ? 'Kèo Dễ Thở (Khắc Chế)'
+                      : 'Kèo Kỹ Năng Ngang Cơ'
+                  : enemy.relation === 'weakAgainst'
+                    ? 'Unfavorable'
+                    : enemy.relation === 'goodAgainst'
+                      ? 'Favorable'
+                      : 'Skill Matchup'}
               </span>
               <h5 className="font-display font-bold text-sm sm:text-base text-text-primary">
                 {lang === 'vi' ? enemy.opponentName_vi : enemy.opponentName_en}

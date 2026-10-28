@@ -30,3 +30,4 @@ export const RpgCard: React.FC<RpgCardProps> = ({
     </div>
   );
 };
+

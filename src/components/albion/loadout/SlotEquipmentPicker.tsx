@@ -271,3 +271,4 @@ export const SlotEquipmentPicker: React.FC<SlotEquipmentPickerProps> = ({
     </div>
   );
 };
+
