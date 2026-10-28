@@ -260,14 +260,14 @@ export const DestinyBoardNavigator: React.FC<DestinyBoardNavigatorProps> = ({
                   )}
                 </div>
 
-                {/* Configure Button Overlay Hint */}
+                {/* Inspect Button Overlay Hint */}
                 <div className="mt-3 pt-2 border-t border-border-subtle flex items-center justify-between text-[11px] text-text-secondary group-hover:text-text-primary">
                   <span className="flex items-center gap-1 font-mono text-[10px]">
                     <Sliders className="w-3 h-3 text-accent-primary" />
                     T4–T8
                   </span>
                   <span className="font-display font-bold text-[10px] uppercase text-accent-primary flex items-center gap-0.5 group-hover:underline">
-                    {lang === 'vi' ? 'Tùy Chỉnh' : 'Configure'}
+                    {lang === 'vi' ? 'Xem Chi Tiết' : 'Inspect'}
                     <ChevronRight className="w-3 h-3" />
                   </span>
                 </div>
