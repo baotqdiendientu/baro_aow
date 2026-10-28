@@ -85,7 +85,7 @@ export const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
           transform: `translateY(${currentY}px)`,
           transition: startY === null ? 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
         }}
-        className="relative w-full max-h-[85vh] bg-bg-surface rounded-t-3xl border-t-2 border-border-gold/50 shadow-2xl flex flex-col overflow-hidden pb-safe"
+        className="relative w-full h-[70vh] max-h-[85vh] bg-bg-surface rounded-t-2xl border-t-2 border-border-gold/50 shadow-2xl flex flex-col overflow-hidden pb-safe"
       >
         {/* Drag Handle Bar */}
         <div className="pt-3 pb-2 flex flex-col items-center cursor-grab active:cursor-grabbing border-b border-border-subtle/40">
@@ -106,7 +106,7 @@ export const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
         </div>
 
         {/* Scrollable Content */}
-        <div className="p-4 overflow-y-auto max-h-[calc(85vh-50px)]">
+        <div className="p-3 sm:p-4 overflow-y-auto flex-1">
           {children}
         </div>
       </div>

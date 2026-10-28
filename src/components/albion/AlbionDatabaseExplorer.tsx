@@ -389,7 +389,7 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
         )}
 
         {/* INTEGRATED INSTANT SEARCH & QUICK FILTER ROW */}
-        <div className="p-4 bg-bg-primary/60 border-b border-border-subtle grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
+        <div className="p-3 md:p-5 bg-bg-primary/60 border-b border-border-subtle grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
           {/* Diacritic-free Search Input */}
           <div className="lg:col-span-5 relative flex items-center bg-bg-secondary border border-border-subtle focus-within:border-border-gold rounded-lg px-3 py-2">
             <Search className="w-4 h-4 text-accent-primary shrink-0 mr-2" />
@@ -518,9 +518,9 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
             </button>
           </div>
 
-          {/* Unified Cards Grid */}
+          {/* Unified Cards Grid: Horizontal snap scroll on small/split screens, responsive multi-column grid on sm+ */}
           {paginatedItems.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 hide-scrollbar sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:overflow-visible sm:pb-0">
               {paginatedItems.map((item, idx) => {
                 const isSelected =
                   selectedItem.base_identifier.toUpperCase() ===
@@ -551,7 +551,7 @@ export const AlbionDatabaseExplorer: React.FC<AlbionDatabaseExplorerProps> = ({
                       }
                     }}
                     className={[
-                      'group relative p-3 rounded-xl border transition-all cursor-pointer flex flex-col justify-between overflow-hidden',
+                      'group relative p-3 md:p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between overflow-hidden min-w-[240px] snap-center shrink-0 sm:min-w-0 sm:shrink',
                       isSelected
                         ? 'bg-bg-elevated border-border-gold shadow-rpg-gold ring-2 ring-accent-primary/60 scale-[1.02]'
                         : 'bg-bg-primary/80 border-border-subtle hover:border-border-gold/60 hover:bg-bg-elevated/70 hover:shadow-rpg-gold',

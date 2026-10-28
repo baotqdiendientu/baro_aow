@@ -178,7 +178,7 @@ export const DestinyBoardNavigator: React.FC<DestinyBoardNavigatorProps> = ({
       </div>
 
       {/* CẤP 3: GRID 8 VŨ KHÍ ĐẠI DIỆN (BASE WEAPONS) - ẢNH TIER 8 THỜI THƯỢNG */}
-      <div className="p-4 sm:p-5 space-y-4">
+      <div className="p-3 md:p-6 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-border-subtle text-xs">
           <div className="flex items-center gap-2">
             <span
@@ -198,8 +198,8 @@ export const DestinyBoardNavigator: React.FC<DestinyBoardNavigatorProps> = ({
           </span>
         </div>
 
-        {/* 8 Base Items Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        {/* 8 Base Items: Horizontal snap scroll on mobile/split-screen, responsive grid on sm+ */}
+        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 hide-scrollbar sm:grid sm:grid-cols-2 md:grid-cols-4 sm:overflow-visible sm:pb-0">
           {familyBaseItems.map((baseItem, idx) => {
             const isSelected = selectedBaseId === baseItem.base_identifier;
             const sig = EXACT_SIGNATURE_SKILLS[baseItem.base_identifier.toUpperCase()];
@@ -209,7 +209,7 @@ export const DestinyBoardNavigator: React.FC<DestinyBoardNavigatorProps> = ({
                 key={baseItem.id}
                 onClick={() => onSelectItem(baseItem)}
                 className={[
-                  'group relative p-3 rounded-xl border transition-all cursor-pointer flex flex-col justify-between overflow-hidden',
+                  'group relative p-3 md:p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between overflow-hidden min-w-[240px] snap-center shrink-0 sm:min-w-0 sm:shrink',
                   isSelected
                     ? 'bg-bg-elevated border-border-gold shadow-rpg-gold ring-2 ring-accent-primary/50'
                     : 'bg-bg-primary/80 border-border-subtle hover:border-border-gold/60 hover:bg-bg-elevated/70 hover:shadow-rpg-gold',

@@ -3,12 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Coins, Database, Search, Swords } from 'lucide-react';
+import { Coins, Database, Home, Swords } from 'lucide-react';
 import { AppLanguage } from '@/i18n/translations';
 
 export interface MobileBottomNavProps {
-  activeTab?: 'search' | 'items' | 'build' | 'market';
-  onSelectTab?: (tab: 'search' | 'items' | 'build' | 'market') => void;
+  activeTab?: 'home' | 'items' | 'build' | 'market' | 'search';
+  onSelectTab?: (tab: 'home' | 'items' | 'build' | 'market') => void;
   lang?: AppLanguage;
 }
 
@@ -23,25 +23,27 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   // Determine current active tab based on pathname if not explicitly passed
   const currentTab =
     activeTab ||
-    (pathname === '/builds/create' || pathname?.startsWith('/build')
-      ? 'build'
-      : pathname === '/items'
-        ? 'items'
-        : 'items');
+    (pathname === '/'
+      ? 'home'
+      : pathname === '/builds/create' || pathname?.startsWith('/build')
+        ? 'build'
+        : pathname === '/items'
+          ? 'items'
+          : 'items');
 
   const tabs: {
-    id: 'search' | 'items' | 'build' | 'market';
+    id: 'home' | 'items' | 'build' | 'market';
     label_vi: string;
     label_en: string;
     icon: React.ReactNode;
     href: string;
   }[] = [
     {
-      id: 'search',
-      label_vi: 'Tìm kiếm',
-      label_en: 'Search',
-      icon: <Search className="w-5 h-5" />,
-      href: '/items?focus=search',
+      id: 'home',
+      label_vi: 'Home',
+      label_en: 'Home',
+      icon: <Home className="w-5 h-5" />,
+      href: '/',
     },
     {
       id: 'items',
@@ -53,7 +55,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     {
       id: 'build',
       label_vi: 'Lắp Build',
-      label_en: 'Builds',
+      label_en: 'Builder',
       icon: <Swords className="w-5 h-5" />,
       href: '/builds/create',
     },
@@ -79,9 +81,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   return (
     <nav
       aria-label="Mobile Navigation"
-      className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-bg-surface/95 backdrop-blur-lg border-t border-border-gold/30 shadow-[0_-4px_20px_rgba(0,0,0,0.35)] pb-safe"
+      className="fixed bottom-0 inset-x-0 z-40 flex lg:hidden w-full bg-bg-surface/95 backdrop-blur-lg border-t border-border-gold/30 shadow-[0_-4px_20px_rgba(0,0,0,0.35)] pb-safe"
     >
-      <div className="grid grid-cols-4 h-14 items-center">
+      <div className="grid grid-cols-4 h-14 items-center w-full">
         {tabs.map((tab) => {
           const isActive = currentTab === tab.id;
           return (

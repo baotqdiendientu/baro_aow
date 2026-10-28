@@ -405,10 +405,10 @@ export const AppShell: React.FC<AppShellProps> = ({
 
       {/* BODY: Collapsible Left Sidebar + Main Viewport */}
       <div className="flex-1 flex overflow-hidden">
-        {/* COLLAPSIBLE LEFT SIDEBAR (Hidden on mobile < 768px in favor of BottomNav) */}
+        {/* COLLAPSIBLE LEFT SIDEBAR (Hidden on mobile & tablet < 1024px in favor of 100% width + BottomNav) */}
         <aside
           className={[
-            'bg-bg-secondary border-r border-border-subtle hidden md:flex flex-col justify-between transition-all duration-200 shrink-0 select-none',
+            'bg-bg-secondary border-r border-border-subtle hidden lg:flex flex-col justify-between transition-all duration-200 shrink-0 select-none',
             sidebarCollapsed ? 'w-16' : 'w-64',
           ].join(' ')}
         >
@@ -588,12 +588,12 @@ export const AppShell: React.FC<AppShellProps> = ({
         </aside>
 
         {/* MAIN VIEWPORT */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
+        <main className="flex-1 overflow-y-auto p-3 md:p-6 lg:p-8 pb-24 lg:pb-8">
           <div
             className={[
               'mx-auto transition-all duration-300',
               compactMode
-                ? 'max-w-4xl border-x border-dashed border-border-gold/40 px-4'
+                ? 'max-w-4xl border-x border-dashed border-border-gold/40 px-3 md:px-4'
                 : 'max-w-7xl',
             ].join(' ')}
           >
@@ -602,23 +602,25 @@ export const AppShell: React.FC<AppShellProps> = ({
         </main>
       </div>
 
-      {/* Sticky Mobile Bottom Navigation (< 768px) */}
+      {/* Sticky Mobile Bottom Navigation (< 1024px) */}
       <MobileBottomNav
         activeTab={
           activeSection === 'loadout'
             ? 'build'
             : activeSection === 'market'
               ? 'market'
-              : 'items'
+              : 'home'
         }
         onSelectTab={(tab) => {
-          if (tab === 'build') setActiveSection('loadout');
-          else if (tab === 'market') setActiveSection('market');
-          else if (tab === 'items') setActiveSection('demo');
-          else if (tab === 'search') {
+          if (tab === 'home') {
             setActiveSection('demo');
-            setSearchOpen(true);
-            setTimeout(() => searchInputRef.current?.focus(), 50);
+            if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else if (tab === 'items') {
+            setActiveSection('demo');
+          } else if (tab === 'build') {
+            setActiveSection('loadout');
+          } else if (tab === 'market') {
+            setActiveSection('market');
           }
         }}
         lang={lang}

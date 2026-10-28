@@ -23,6 +23,7 @@ import {
 import { AppLanguage, UI_TRANSLATIONS } from '@/i18n/translations';
 import { ItemSlot } from './ItemSlot';
 import {
+  ChevronDown,
   Clock,
   Coins,
   Crosshair,
@@ -74,6 +75,15 @@ export const ItemTooltip: React.FC<ItemTooltipProps> = ({
   const [activeSpellTab, setActiveSpellTab] = useState<SpellSlotKey>(() =>
     getInitialSpellTab(item)
   );
+  const [isCombatStatsOpen, setIsCombatStatsOpen] = useState(false);
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
+
+  useEffect(() => {
+    // Default open on desktop/laptop (>= 768px), closed on small windows / mobile to save vertical space
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      setIsCombatStatsOpen(true);
+    }
+  }, []);
 
   useEffect(() => {
     setSelectedSpells(item.default_spells);
@@ -280,127 +290,144 @@ export const ItemTooltip: React.FC<ItemTooltipProps> = ({
         )}
       </div>
 
-      {/* CORE COMBAT STATS GRID (Strict JetBrains Mono for numbers) */}
-      <div className="p-4 sm:p-5 border-b border-border-subtle bg-bg-elevated/60">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
-          <h4 className="text-xs font-display uppercase tracking-wider text-accent-primary flex items-center gap-1.5">
-            <Swords className="w-3.5 h-3.5" />
-            {t.combatAndMarketMetricsTitle}
-          </h4>
-          <span className="text-[11px] font-mono text-text-muted">
-            {t.autoCalculatedFor} T{activeTier}.{activeEnchant} • {qualityName}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          {dynamicStats.scaledDps !== undefined && (
-            <div className="bg-bg-primary/70 border border-border-subtle rounded-lg p-2.5">
-              <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
-                <Flame className="w-3.5 h-3.5 text-accent-crimson" />
-                <span>{t.dpsLabel}</span>
-              </div>
-              <div className="mt-1 font-mono text-base font-bold text-text-primary">
-                {dynamicStats.scaledDps}{' '}
-                <span className="text-xs font-normal text-text-muted">DPS</span>
-              </div>
-              <div className="font-mono text-[10px] text-text-muted">
-                {t.autoAttackPrefix} {dynamicStats.scaledAutoAttack} dmg
-              </div>
-            </div>
-          )}
-
-          <div className="bg-bg-primary/70 border border-border-subtle rounded-lg p-2.5">
-            <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
-              <Crosshair className="w-3.5 h-3.5 text-sky-400" />
-              <span>{t.rangeAndSpeedLabel}</span>
-            </div>
-            <div className="mt-1 font-mono text-sm sm:text-base font-bold text-text-primary truncate">
-              {lang === 'vi'
-                ? item.stats.attack_range_vi
-                : item.stats.attack_range_en}
-            </div>
-            {item.stats.attack_speed !== undefined && (
-              <div className="font-mono text-[10px] text-text-muted">
-                {item.stats.attack_speed.toFixed(2)} {t.attacksPerSecUnit}
-              </div>
-            )}
-          </div>
-
-          <div className="bg-bg-primary/70 border border-border-subtle rounded-lg p-2.5">
-            <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
-              <Shield className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{t.penetrationAndBonusLabel}</span>
-            </div>
-            <div className="mt-1 font-mono text-base font-bold text-emerald-300">
-              {item.stats.resilience_penetration ??
-                item.stats.bonus_defense_vs_players ??
-                '0%'}
-            </div>
-            <div className="font-mono text-[10px] text-text-muted truncate">
-              {t.bonusPrefix}{' '}
-              {(lang === 'vi'
-                ? item.stats.ability_bonus_vi
-                : item.stats.ability_bonus_en) ?? t.standardEquipmentBonus}
-            </div>
-          </div>
-
-          <div className="bg-bg-primary/70 border border-border-subtle rounded-lg p-2.5">
-            <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
-              <Coins className="w-3.5 h-3.5 text-accent-primary" />
-              <span>{t.estimatedMarketPriceLabel}</span>
-            </div>
-            <div className="mt-1 font-mono text-base font-bold text-accent-primary">
-              {dynamicStats.estimatedSilver.toLocaleString('en-US')}{' '}
-              <span className="text-[11px] font-normal text-text-secondary">
-                {t.silverUnit}
-              </span>
-            </div>
-            <div className="font-mono text-[10px] text-text-muted flex items-center gap-1">
-              <MapPin className="w-2.5 h-2.5 text-accent-primary" />
-              {item.best_city}
-            </div>
-          </div>
-        </div>
-
-        {/* Secondary stats bar */}
-        <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 rounded bg-bg-secondary/80 border border-border-subtle/60 text-[11px] text-text-secondary">
-          <div className="flex items-center gap-4">
-            {item.stats.max_energy && (
-              <span className="flex items-center gap-1 font-mono">
-                <Zap className="w-3 h-3 text-sky-400" />
-                {t.maxEnergyLabel}{' '}
-                <strong className="text-text-primary">
-                  {item.stats.max_energy}
-                </strong>{' '}
-                (+{item.stats.energy_regen}/s)
-              </span>
-            )}
-            <span className="flex items-center gap-1 font-mono">
-              <Weight className="w-3 h-3 text-text-muted" />
-              {t.weightLabel}{' '}
-              <strong className="text-text-primary">{item.stats.weight}</strong>
+      {/* CORE COMBAT STATS & MARKET METRICS: ACCORDION (Collapsed by default on small windows / mobile) */}
+      <details
+        open={isCombatStatsOpen}
+        onToggle={(e) => setIsCombatStatsOpen(e.currentTarget.open)}
+        className="group border-b border-border-subtle bg-bg-elevated/60 transition-all"
+      >
+        <summary className="p-3 md:p-4 flex items-center justify-between cursor-pointer list-none select-none hover:bg-bg-secondary/40 transition-colors">
+          <div className="flex items-center gap-2">
+            <h4 className="text-xs sm:text-sm font-display uppercase tracking-wider text-accent-primary flex items-center gap-1.5 font-bold">
+              <Swords className="w-3.5 h-3.5 text-accent-primary" />
+              {t.combatAndMarketMetricsTitle}
+            </h4>
+            <span className="text-[10px] sm:text-[11px] font-mono text-text-muted hidden sm:inline">
+              ({t.autoCalculatedFor} T{activeTier}.{activeEnchant} • {qualityName})
             </span>
           </div>
+          <div className="flex items-center gap-2 text-text-secondary text-xs">
+            <span className="text-[11px] font-mono text-accent-primary font-bold sm:hidden">
+              {dynamicStats.totalIp} IP
+            </span>
+            <span className="text-[11px] font-mono text-text-muted hidden sm:inline">
+              {isCombatStatsOpen ? (lang === 'vi' ? 'Thu gọn' : 'Collapse') : (lang === 'vi' ? 'Mở rộng' : 'Expand')}
+            </span>
+            <ChevronDown className="w-4 h-4 text-text-muted transition-transform duration-200 group-open:rotate-180" />
+          </div>
+        </summary>
 
-          {/* Zone Safety Tags */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            {item.recommended_zones.map((zoneKey) => {
-              const z = ZONE_METADATA[zoneKey];
-              return (
-                <span
-                  key={zoneKey}
-                  className={`px-2 py-0.5 text-[10px] font-medium rounded border ${z.badgeClass}`}
-                >
-                  {lang === 'vi' ? z.label_vi : z.label_en}
+        <div className="p-3 md:p-5 pt-0 space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {dynamicStats.scaledDps !== undefined && (
+              <div className="bg-bg-primary/70 border border-border-subtle rounded-lg p-2.5">
+                <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
+                  <Flame className="w-3.5 h-3.5 text-accent-crimson" />
+                  <span>{t.dpsLabel}</span>
+                </div>
+                <div className="mt-1 font-mono text-base font-bold text-text-primary">
+                  {dynamicStats.scaledDps}{' '}
+                  <span className="text-xs font-normal text-text-muted">DPS</span>
+                </div>
+                <div className="font-mono text-[10px] text-text-muted">
+                  {t.autoAttackPrefix} {dynamicStats.scaledAutoAttack} dmg
+                </div>
+              </div>
+            )}
+
+            <div className="bg-bg-primary/70 border border-border-subtle rounded-lg p-2.5">
+              <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
+                <Crosshair className="w-3.5 h-3.5 text-sky-400" />
+                <span>{t.rangeAndSpeedLabel}</span>
+              </div>
+              <div className="mt-1 font-mono text-sm sm:text-base font-bold text-text-primary truncate">
+                {lang === 'vi'
+                  ? item.stats.attack_range_vi
+                  : item.stats.attack_range_en}
+              </div>
+              {item.stats.attack_speed !== undefined && (
+                <div className="font-mono text-[10px] text-text-muted">
+                  {item.stats.attack_speed.toFixed(2)} {t.attacksPerSecUnit}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-bg-primary/70 border border-border-subtle rounded-lg p-2.5">
+              <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
+                <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{t.penetrationAndBonusLabel}</span>
+              </div>
+              <div className="mt-1 font-mono text-base font-bold text-emerald-300">
+                {item.stats.resilience_penetration ??
+                  item.stats.bonus_defense_vs_players ??
+                  '0%'}
+              </div>
+              <div className="font-mono text-[10px] text-text-muted truncate">
+                {t.bonusPrefix}{' '}
+                {(lang === 'vi'
+                  ? item.stats.ability_bonus_vi
+                  : item.stats.ability_bonus_en) ?? t.standardEquipmentBonus}
+              </div>
+            </div>
+
+            <div className="bg-bg-primary/70 border border-border-subtle rounded-lg p-2.5">
+              <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
+                <Coins className="w-3.5 h-3.5 text-accent-primary" />
+                <span>{t.estimatedMarketPriceLabel}</span>
+              </div>
+              <div className="mt-1 font-mono text-base font-bold text-accent-primary">
+                {dynamicStats.estimatedSilver.toLocaleString('en-US')}{' '}
+                <span className="text-[11px] font-normal text-text-secondary">
+                  {t.silverUnit}
                 </span>
-              );
-            })}
+              </div>
+              <div className="font-mono text-[10px] text-text-muted flex items-center gap-1">
+                <MapPin className="w-2.5 h-2.5 text-accent-primary" />
+                {item.best_city}
+              </div>
+            </div>
+          </div>
+
+          {/* Secondary stats bar */}
+          <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 rounded bg-bg-secondary/80 border border-border-subtle/60 text-[11px] text-text-secondary">
+            <div className="flex items-center gap-4">
+              {item.stats.max_energy && (
+                <span className="flex items-center gap-1 font-mono">
+                  <Zap className="w-3 h-3 text-sky-400" />
+                  {t.maxEnergyLabel}{' '}
+                  <strong className="text-text-primary">
+                    {item.stats.max_energy}
+                  </strong>{' '}
+                  (+{item.stats.energy_regen}/s)
+                </span>
+              )}
+              <span className="flex items-center gap-1 font-mono">
+                <Weight className="w-3 h-3 text-text-muted" />
+                {t.weightLabel}{' '}
+                <strong className="text-text-primary">{item.stats.weight}</strong>
+              </span>
+            </div>
+
+            {/* Zone Safety Tags */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {item.recommended_zones.map((zoneKey) => {
+                const z = ZONE_METADATA[zoneKey];
+                return (
+                  <span
+                    key={zoneKey}
+                    className={`px-2 py-0.5 text-[10px] font-medium rounded border ${z.badgeClass}`}
+                  >
+                    {lang === 'vi' ? z.label_vi : z.label_en}
+                  </span>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      </details>
 
       {/* SPELL SELECTOR & ABILITY INSPECTOR (Q / W / E / PASSIVE) */}
-      <div className="p-4 sm:p-5 bg-bg-secondary/40">
+      <div className="p-3 md:p-6 bg-bg-secondary/40">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
           <h4 className="text-xs font-display uppercase tracking-wider text-accent-primary flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5" />
@@ -411,8 +438,8 @@ export const ItemTooltip: React.FC<ItemTooltipProps> = ({
           </span>
         </div>
 
-        {/* Horizontal row of Q / W / E / Passive slot groups */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+        {/* Horizontal row of Q / W / E / Passive slot groups: Horizontal snap scroll on small screens, 4-col grid on md+ */}
+        <div className="flex overflow-x-auto snap-x gap-2.5 pb-2 hide-scrollbar md:grid md:grid-cols-4 md:overflow-visible md:pb-0 mb-4">
           {spellSlotsConfig.map(({ key, label, badge }) => {
             const slotSpells = item.spells[key] || [];
             if (slotSpells.length === 0) return null;
@@ -425,7 +452,7 @@ export const ItemTooltip: React.FC<ItemTooltipProps> = ({
                 key={key}
                 onClick={() => setActiveSpellTab(key)}
                 className={[
-                  'p-2.5 rounded-lg border transition-all cursor-pointer',
+                  'p-2.5 rounded-lg border transition-all cursor-pointer min-w-[200px] snap-center shrink-0 md:min-w-0 md:shrink',
                   isTabFocused
                     ? 'bg-bg-elevated border-border-gold/80 shadow-rpg-gold'
                     : 'bg-bg-primary/60 border-border-subtle hover:border-border-gold/40',
@@ -440,7 +467,7 @@ export const ItemTooltip: React.FC<ItemTooltipProps> = ({
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex flex-row items-center gap-1.5 overflow-x-auto hide-scrollbar py-0.5">
                   {slotSpells.map((spell) => {
                     const isSelected = spell.id === currentSelectedId;
                     return (
@@ -541,12 +568,31 @@ export const ItemTooltip: React.FC<ItemTooltipProps> = ({
               </div>
             </div>
 
-            <div className="mt-2.5 space-y-1">
-              <p className="text-xs sm:text-sm text-text-primary leading-relaxed font-sans">
+            <div className="mt-2.5 space-y-1.5">
+              <p
+                className={[
+                  'text-sm md:text-base text-text-primary leading-relaxed font-sans transition-all',
+                  isDescExpanded ? '' : 'line-clamp-3 md:line-clamp-none',
+                ].join(' ')}
+              >
                 {lang === 'vi'
                   ? focusedSpell.description_vi
                   : focusedSpell.description_en}
               </p>
+              {focusedSpell && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsDescExpanded(!isDescExpanded);
+                  }}
+                  className="text-xs font-mono font-bold text-accent-primary hover:underline md:hidden inline-flex items-center gap-1"
+                >
+                  {isDescExpanded
+                    ? (lang === 'vi' ? 'Thu gọn ▲' : 'Show less ▲')
+                    : (lang === 'vi' ? 'Xem thêm ▼' : 'Read more ▼')}
+                </button>
+              )}
               <p className="text-xs text-text-muted italic font-sans">
                 {lang === 'vi' ? 'EN:' : 'VI:'} &ldquo;
                 {lang === 'vi'

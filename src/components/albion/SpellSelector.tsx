@@ -70,7 +70,7 @@ export const SpellSelector: React.FC<SpellSelectorProps> = ({
       </div>
 
       {/* Horizontal Brass-Rimmed Spell Row (Scrollable with snap on mobile) */}
-      <div className="flex overflow-x-auto snap-x pb-2 gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible scrollbar-none">
+      <div className="flex overflow-x-auto snap-x pb-2 gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible hide-scrollbar">
         {availableGroups.map(({ key, label, badge }) => {
           const spells = item.spells[key] || [];
           const currentId = selectedSpells[key] || spells[0]?.id;
@@ -96,7 +96,7 @@ export const SpellSelector: React.FC<SpellSelectorProps> = ({
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex flex-row items-center gap-1.5 overflow-x-auto hide-scrollbar py-0.5">
                 {spells.map((sp) => {
                   const isChosen = sp.id === currentId;
                   return (
@@ -121,7 +121,7 @@ export const SpellSelector: React.FC<SpellSelectorProps> = ({
 
       {/* Selected Spell Quick Summary */}
       {focusedSpell && (
-        <div className="p-3 rounded-lg bg-bg-primary/90 border border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="p-3 md:p-4 rounded-lg bg-bg-primary/90 border border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-accent-primary text-bg-primary">
@@ -137,7 +137,7 @@ export const SpellSelector: React.FC<SpellSelectorProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-text-secondary leading-relaxed">
+            <p className="text-sm md:text-base text-text-secondary leading-relaxed line-clamp-3 sm:line-clamp-none">
               {lang === 'vi'
                 ? focusedSpell.description_vi
                 : focusedSpell.description_en}

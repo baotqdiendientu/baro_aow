@@ -85,7 +85,11 @@ export const ItemSlot: React.FC<ItemSlotProps> = ({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      onMouseEnter={onMouseEnter}
+      onMouseEnter={() => {
+        // Disable hover tooltip on small windows / mobile touch screens (< 768px)
+        if (typeof window !== 'undefined' && window.innerWidth < 768) return;
+        onMouseEnter?.();
+      }}
       onMouseLeave={onMouseLeave}
       title={`${name} (${uniqueName} • ${qualityMeta.name_en})`}
       aria-label={`${name} Tier ${tier}.${enchantment}`}

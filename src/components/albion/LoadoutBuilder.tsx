@@ -514,9 +514,9 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
   };
 
   return (
-    <div className="space-y-6 pb-20 md:pb-6">
+    <div className="space-y-6 pb-24 lg:pb-6">
       {/* HEADER + PRESET BAR */}
-      <div className="p-5 rounded-xl bg-bg-secondary border border-border-subtle space-y-4">
+      <div className="p-3 md:p-6 rounded-xl bg-bg-secondary border border-border-subtle space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <span className="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-accent-primary/20 text-accent-primary border border-border-gold/40">
@@ -662,7 +662,7 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
       {/* MAIN BUILDER WORKSPACE: 10-SLOT PAPERDOLL (LEFT) + PAGINATED SLOT PICKER & SPELL SELECTOR (RIGHT) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT (5 cols): 10-SLOT ALBION PAPERDOLL */}
-        <div className="lg:col-span-5 p-5 rounded-xl bg-bg-secondary border border-border-subtle space-y-5">
+        <div className="lg:col-span-5 p-3 md:p-6 rounded-xl bg-bg-secondary border border-border-subtle space-y-5">
           {/* Top Stats Summary: Average IP & Total Build Cost */}
           <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-bg-primary border border-border-gold/40 shadow-rpg-gold">
             <div>
@@ -747,7 +747,7 @@ export const LoadoutBuilder: React.FC<LoadoutBuilderProps> = ({ lang }) => {
         {/* RIGHT (7 cols): PAGINATED SLOT EQUIPMENT PICKER + <SpellSelector /> + <ItemTooltip /> */}
         <div className="lg:col-span-7 space-y-5">
           {/* Paginated Slot Item Swapper & Tier/Enchant/Quality Controls */}
-          <div className="p-5 rounded-xl bg-bg-secondary border border-border-subtle space-y-4">
+          <div className="p-3 md:p-6 rounded-xl bg-bg-secondary border border-border-subtle space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-border-subtle">
               <div className="flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-accent-primary" />
