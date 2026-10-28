@@ -84,7 +84,7 @@ const META_PRESETS: FullPresetLoadout[] = [
       Cape: { uniqueName: 'T6_CAPEITEM_FW_THETFORD', tier: 7, enchant: 2, quality: 4 },
       MainHand: { uniqueName: 'T6_2H_SCYTHE_CRYSTAL', tier: 7, enchant: 2, quality: 4 },
       Armor: { uniqueName: 'T6_ARMOR_LEATHER_HELL', tier: 7, enchant: 2, quality: 4 },
-      OffHand: { uniqueName: 'T6_OFF_HORN_KEEPER', tier: 6, enchant: 1, quality: 3 },
+      OffHand: null,
       Potion: { uniqueName: 'T7_POTION_REVIVE', tier: 7, enchant: 1, quality: 1 },
       Shoes: { uniqueName: 'T6_SHOES_PLATE_SET2', tier: 7, enchant: 2, quality: 4 },
       Food: { uniqueName: 'T8_MEAL_STEW', tier: 8, enchant: 1, quality: 1 },

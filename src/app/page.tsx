@@ -51,32 +51,32 @@ export default function HomePage() {
 
   const topPhaseTabs: {
     id: ActiveAppSection;
-    phase: string;
     label: string;
+    subLabel: string;
     icon: React.ReactNode;
   }[] = [
     {
       id: 'demo',
-      phase: `${FULL_ALBION_DB.length} Items`,
-      label: t.navItemTooltipEngine,
+      subLabel: `${FULL_ALBION_DB.length} Vật phẩm`,
+      label: lang === 'vi' ? 'Bảng Định Mệnh & Vũ Khí' : 'Destiny Board & Armory',
       icon: <Shield className="w-4 h-4" />,
     },
     {
       id: 'loadout',
-      phase: 'Phase 3',
-      label: t.navLoadoutBuilder,
+      subLabel: 'Mô Phỏng Trang Bị',
+      label: lang === 'vi' ? 'Khung Lắp Đồ (Builder)' : 'Loadout Builder',
       icon: <Layers className="w-4 h-4" />,
     },
     {
       id: 'market',
-      phase: 'Phase 4',
-      label: t.navMarketTracker,
+      subLabel: 'Tra Cứu Giá Real-time',
+      label: lang === 'vi' ? 'Giá Chợ & Chế Tạo' : 'Market & Crafting Hub',
       icon: <Compass className="w-4 h-4" />,
     },
     {
       id: 'tokens',
-      phase: 'Phase 1',
-      label: t.navDesignTokens,
+      subLabel: 'Design System',
+      label: lang === 'vi' ? 'Bảng Thiết Kế RPG' : 'RPG Design Tokens',
       icon: <Palette className="w-4 h-4" />,
     },
   ];
@@ -92,7 +92,7 @@ export default function HomePage() {
       lang={lang}
       setLang={setLang}
     >
-      {/* TOP MODULE SWITCHER BAR (P1 - P4) */}
+      {/* QUICK GAMEPLAY MODULE NAVIGATION */}
       <div className="mb-6 grid grid-cols-2 lg:grid-cols-4 gap-2.5">
         {topPhaseTabs.map((tab) => {
           const isCurrent = activeSection === tab.id;
@@ -115,7 +115,7 @@ export default function HomePage() {
                 </span>
               </div>
               <span className="px-1.5 py-0.5 text-[10px] font-mono rounded bg-bg-primary text-accent-primary border border-border-gold/30 shrink-0">
-                {tab.phase}
+                {tab.subLabel}
               </span>
             </button>
           );

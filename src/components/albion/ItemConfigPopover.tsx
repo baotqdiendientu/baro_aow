@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlbionEnchantment,
   AlbionItem,
@@ -74,8 +74,27 @@ export const ItemConfigPopover: React.FC<ItemConfigPopoverProps> = ({
     Record<SpellSlotKey, string>
   >(() => item.default_spells || {});
 
+  // Touch drag state for Mobile Bottom Sheet (< 768px)
+  const [startY, setStartY] = useState<number | null>(null);
+  const [currentY, setCurrentY] = useState<number>(0);
+  const sheetRef = useRef<HTMLDivElement>(null);
+
+  // Prevent background scroll on mobile
+  useEffect(() => {
+    const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
+    if (isOpen && isMobile()) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      setCurrentY(0);
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   // If item changed, sync default tier & spells
-  React.useEffect(() => {
+  useEffect(() => {
     setSelectedTier(defaultTier);
     setSelectedEnchant(initialEnchantment as AlbionEnchantment);
     setSelectedQuality(initialQuality as AlbionQuality);
@@ -83,6 +102,27 @@ export const ItemConfigPopover: React.FC<ItemConfigPopoverProps> = ({
   }, [item.id, defaultTier, initialEnchantment, initialQuality]);
 
   if (!isOpen) return null;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) return;
+    setStartY(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (startY === null || (typeof window !== 'undefined' && window.innerWidth >= 768)) return;
+    const diff = e.touches[0].clientY - startY;
+    if (diff > 0) {
+      setCurrentY(diff);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (currentY > 80) {
+      onClose();
+    }
+    setStartY(null);
+    setCurrentY(0);
+  };
 
   const configuredItem = getHydratedVariant(
     item.base_identifier,
@@ -118,15 +158,32 @@ export const ItemConfigPopover: React.FC<ItemConfigPopoverProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-bg-primary/80 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-50 flex flex-col justify-end md:justify-center md:items-center p-0 md:p-4 bg-bg-primary/80 backdrop-blur-md animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl rounded-2xl bg-bg-surface border-2 border-border-gold/60 shadow-rpg-gold overflow-hidden flex flex-col max-h-[90vh]"
+        ref={sheetRef}
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={
+          currentY > 0
+            ? {
+                transform: `translateY(${currentY}px)`,
+                transition: startY === null ? 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
+              }
+            : undefined
+        }
+        className="relative w-full md:max-w-2xl h-[82vh] md:h-auto max-h-[85vh] md:max-h-[90vh] rounded-t-2xl md:rounded-2xl bg-bg-surface border-t-2 md:border-2 border-border-gold/60 shadow-2xl md:shadow-rpg-gold overflow-hidden flex flex-col pb-safe"
       >
+        {/* Mobile Drag Handle Bar */}
+        <div className="md:hidden pt-2.5 pb-1 flex flex-col items-center cursor-grab active:cursor-grabbing border-b border-border-subtle/40 shrink-0">
+          <div className="w-12 h-1.5 rounded-full bg-border-subtle hover:bg-border-gold/60 transition-colors" />
+        </div>
+
         {/* Header Bar */}
-        <div className="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-bg-elevated via-bg-secondary to-bg-elevated border-b border-border-gold/40">
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-3.5 bg-gradient-to-r from-bg-elevated via-bg-secondary to-bg-elevated border-b border-border-gold/40 shrink-0">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-accent-primary animate-pulse" />
             <span className="font-display font-bold text-xs uppercase tracking-wider text-accent-primary">
@@ -353,21 +410,21 @@ export const ItemConfigPopover: React.FC<ItemConfigPopoverProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="px-5 py-3.5 bg-bg-elevated border-t border-border-subtle flex items-center justify-between gap-3">
-          <div className="font-mono text-xs text-text-secondary hidden sm:block">
-            {lang === 'vi' ? 'Tổng chỉ số IP:' : 'Total IP:'}{' '}
+        <div className="px-4 sm:px-5 py-3 sm:py-3.5 bg-bg-elevated border-t border-border-subtle flex items-center justify-between gap-2 shrink-0">
+          <div className="font-mono text-[11px] sm:text-xs text-text-secondary">
+            <span className="hidden xs:inline">{lang === 'vi' ? 'Tổng:' : 'Total:'}{' '}</span>
             <strong className="text-accent-primary font-bold font-mono">
               {dynamicStats.totalIp.toLocaleString('en-US')} IP
             </strong>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-2 justify-end">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-bg-primary/60 transition-colors"
+              className="px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-bg-primary/60 transition-colors"
             >
-              {lang === 'vi' ? 'Hủy Bỏ' : 'Cancel'}
+              {lang === 'vi' ? 'Hủy' : 'Cancel'}
             </button>
 
             {mode !== 'equip' && onInspect && (

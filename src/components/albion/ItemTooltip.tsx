@@ -75,15 +75,9 @@ export const ItemTooltip: React.FC<ItemTooltipProps> = ({
   const [activeSpellTab, setActiveSpellTab] = useState<SpellSlotKey>(() =>
     getInitialSpellTab(item)
   );
-  const [isCombatStatsOpen, setIsCombatStatsOpen] = useState(false);
+  // Default open so players can instantly view DPS, Attack Range, and Market Price without extra click
+  const [isCombatStatsOpen, setIsCombatStatsOpen] = useState(true);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
-
-  useEffect(() => {
-    // Default open on desktop/laptop (>= 768px), closed on small windows / mobile to save vertical space
-    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
-      setIsCombatStatsOpen(true);
-    }
-  }, []);
 
   useEffect(() => {
     setSelectedSpells(item.default_spells);
